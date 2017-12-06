@@ -1,0 +1,169 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+ul, li {
+    list-style: none;
+}
+.html ,body {
+    height: 100%;
+}
+.menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 50px;
+    background: rgba(0, 0, 0, .7);
+    .dv {
+        position: relative;
+        height: 100%;
+        .ul {
+            position: absolute;
+            .li {
+                padding: 0 0 13px 0;
+                .img {
+                    width: 24px;
+                    height: 24px;
+                    // background: pink;
+                    margin: 13px;
+                }  
+                .label {
+                    text-align: center;
+                    color: #fff;
+                } 
+                &:hover {
+                    .label {
+                        color: #1296db;
+                    }
+                }
+            }
+        }
+        .ul-top {
+            top: 0;
+            left: 0;
+            .li {
+                &:nth-child(1) {
+                    .img {
+                        background: url('./images/granary1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                }
+                &:nth-child(2) {
+                    .img {
+                        background:  url('./images/ability1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                }
+                &:nth-child(3) {
+                    .img {
+                        background: url('./images/walk1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                }
+                &:nth-child(4) {
+                    .img {
+                        background:  url('./images/help1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                    .label {
+                        color: #f4ea2a;
+                    }
+                }
+                &:hover {
+                    &:nth-child(1) {
+                        .img {
+                            background: url('./images/granary2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                    }
+                    &:nth-child(2) {
+                        .img {
+                            background:  url('./images/ability2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                    }
+                    &:nth-child(3) {
+                        .img {
+                            background: url('./images/walk2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                    }
+                    &:nth-child(4) {
+                        .img {
+                            background:  url('./images/help2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                        .label {
+                            color: #1afa29;
+                        }
+                    }
+                }
+            }
+        }
+        .ul-bottom {
+            bottom: 0;
+            left: 0;
+            .li {
+                &:nth-child(1) {
+                    .img-2d {
+                        background: url('./images/two-d1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                    .img-3d {
+                        background: url('./images/three-d1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                }
+                &:nth-child(2) {
+                    .img {
+                        background:  url('./images/rotate1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                }
+                &:nth-child(3) {
+                    .img {
+                        background: url('./images/restore1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                }
+                &:nth-child(4) {
+                    .img {
+                        background:  url('./images/back1.png') no-repeat center;
+                        background-size: contain;
+                    }
+                }
+                &:hover {
+                    &:nth-child(1) {
+                        .img-2d {
+                            background: url('./images/two-d2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                        .img-3d {
+                            background: url('./images/three-d2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                    }
+                    &:nth-child(2) {
+                        .img {
+                            background:  url('./images/rotate2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                    }
+                    &:nth-child(3) {
+                        .img {
+                            background: url('./images/restore2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                    }
+                    &:nth-child(4) {
+                        .img {
+                            background:  url('./images/back2.png') no-repeat center;
+                            background-size: contain;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

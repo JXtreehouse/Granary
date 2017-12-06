@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Thing 3D Sample</title>
+		<style> 
+			body { margin: 0; overflow: hidden; } 
+			canvas { width: 100%; height: 100% }
+		</style>
+		<link rel="stylesheet" href="css/menu.css">
+		<script src="../../dist/thing3d.js"></script>
+		<!--script src="https://speech.uinnova.com/static/release/thing3d.min.js"></script-->
+		<script src="http://47.93.162.148:8081/release/dat.gui.js"></script>
+		<script src="js/webgl-heatmap.js"></script>
+		<script src="js/silohouse.js"></script>
+	</head>
+
+	<style> 
+		body { margin: 0; overflow: hidden; } 
+		canvas { width: 100%; height: 100% }
+	</style>
+	
+	<body>
+		<div id="div3d"></div>
+		<!-- <video src="rtsp://guest:uin123456@192.168.2.49:554/h265/ch1/main/av_stream">
+			<!-- Fallback here -->
+		</video> -->
+		<div class="menu">
+			<div class="dv">
+				<ul class="ul ul-top">
+					<li class="li logo">
+						<div class="img"></div>
+					</li>
+					<li class="li">
+						<div class="img"></div>
+						<p class="label">功能</p>
+					</li>
+					<li class="li">
+						<div class="img"></div>
+						<p class="label">行走</p>
+					</li>
+					<li class="li">
+						<div class="img"></div>
+						<p class="label">帮助</p>
+					</li>
+				</ul>
+				<ul class="ul ul-bottom">    
+					<!-- 下邊 -->
+					<li class="li" onclick="MenuItemClick(this,'cam')">
+						<div class="img img-2d"></div>
+						<p class="label">2D</p>
+					</li>
+					<li class="li" onclick="MenuItemClick(this,'rot')">
+						<div class="img"></div>
+						<p class="label">旋转</p>
+					</li>
+					<li class="li" onclick="MenuItemClick(this,'reset')">
+						<div class="img"></div>
+						<p class="label">复位</p>
+					</li>
+					<li class="li">
+						<div class="img"></div>
+						<p class="label">返回</p>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</body>
+</html>
