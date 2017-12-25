@@ -1,3 +1,5 @@
+@percent-screen-m: 0.7;
+@percent-screen-s: 0.5;
 * {
     margin: 0;
     padding: 0;
@@ -15,6 +17,8 @@ ul, li {
     height: 100%;
     width: 50px;
     background: rgba(0, 0, 0, .7);
+    font-size: 14px;
+    z-index: 1000;
     .dv {
         position: relative;
         height: 100%;
@@ -45,25 +49,25 @@ ul, li {
             .li {
                 &:nth-child(1) {
                     .img {
-                        background: url('./images/granary1.png') no-repeat center;
+                        background: url('../images/granary1.png') no-repeat center;
                         background-size: contain;
                     }
                 }
                 &:nth-child(2) {
                     .img {
-                        background:  url('./images/ability1.png') no-repeat center;
+                        background:  url('../images/ability1.png') no-repeat center;
                         background-size: contain;
                     }
                 }
                 &:nth-child(3) {
                     .img {
-                        background: url('./images/walk1.png') no-repeat center;
+                        background: url('../images/walk1.png') no-repeat center;
                         background-size: contain;
                     }
                 }
                 &:nth-child(4) {
                     .img {
-                        background:  url('./images/help1.png') no-repeat center;
+                        background:  url('../images/help1.png') no-repeat center;
                         background-size: contain;
                     }
                     .label {
@@ -73,25 +77,25 @@ ul, li {
                 &:hover {
                     &:nth-child(1) {
                         .img {
-                            background: url('./images/granary2.png') no-repeat center;
+                            background: url('../images/granary2.png') no-repeat center;
                             background-size: contain;
                         }
                     }
                     &:nth-child(2) {
                         .img {
-                            background:  url('./images/ability2.png') no-repeat center;
+                            background:  url('../images/ability2.png') no-repeat center;
                             background-size: contain;
                         }
                     }
                     &:nth-child(3) {
                         .img {
-                            background: url('./images/walk2.png') no-repeat center;
+                            background: url('../images/walk2.png') no-repeat center;
                             background-size: contain;
                         }
                     }
                     &:nth-child(4) {
                         .img {
-                            background:  url('./images/help2.png') no-repeat center;
+                            background:  url('../images/help2.png') no-repeat center;
                             background-size: contain;
                         }
                         .label {
@@ -102,67 +106,109 @@ ul, li {
             }
         }
         .ul-bottom {
-            bottom: 0;
+            top: 360px;
             left: 0;
             .li {
                 &:nth-child(1) {
                     .img-2d {
-                        background: url('./images/two-d1.png') no-repeat center;
+                        background: url('../images/two-d1.png') no-repeat center;
                         background-size: contain;
                     }
                     .img-3d {
-                        background: url('./images/three-d1.png') no-repeat center;
+                        background: url('../images/three-d1.png') no-repeat center;
                         background-size: contain;
                     }
                 }
                 &:nth-child(2) {
                     .img {
-                        background:  url('./images/rotate1.png') no-repeat center;
+                        background:  url('../images/rotate1.png') no-repeat center;
                         background-size: contain;
                     }
                 }
                 &:nth-child(3) {
                     .img {
-                        background: url('./images/restore1.png') no-repeat center;
+                        background: url('../images/restore1.png') no-repeat center;
                         background-size: contain;
                     }
                 }
                 &:nth-child(4) {
                     .img {
-                        background:  url('./images/back1.png') no-repeat center;
+                        background:  url('../images/back1.png') no-repeat center;
                         background-size: contain;
                     }
                 }
                 &:hover {
                     &:nth-child(1) {
                         .img-2d {
-                            background: url('./images/two-d2.png') no-repeat center;
+                            background: url('../images/two-d2.png') no-repeat center;
                             background-size: contain;
                         }
                         .img-3d {
-                            background: url('./images/three-d2.png') no-repeat center;
+                            background: url('../images/three-d2.png') no-repeat center;
                             background-size: contain;
                         }
                     }
                     &:nth-child(2) {
                         .img {
-                            background:  url('./images/rotate2.png') no-repeat center;
+                            background:  url('../images/rotate2.png') no-repeat center;
                             background-size: contain;
                         }
                     }
                     &:nth-child(3) {
                         .img {
-                            background: url('./images/restore2.png') no-repeat center;
+                            background: url('../images/restore2.png') no-repeat center;
                             background-size: contain;
                         }
                     }
                     &:nth-child(4) {
                         .img {
-                            background:  url('./images/back2.png') no-repeat center;
+                            background:  url('../images/back2.png') no-repeat center;
                             background-size: contain;
                         }
                     }
                 }
+            }
+        }
+    }
+}
+@media screen and (min-width: 1096px) and (max-width: 1440px) {
+    .menu {
+        width: 50px*@percent-screen-m;
+        font-size: 14px*@percent-screen-m;
+        .dv {
+            .ul {
+                .li {
+                    padding: 0 0 13px*@percent-screen-m 0;
+                    .img {
+                        width: 24px*@percent-screen-m;
+                        height: 24px*@percent-screen-m;
+                        margin: 13px*@percent-screen-m;
+                    }  
+                }
+            }
+            .ul-bottom {
+                top: 360px*@percent-screen-m;
+            }
+        }
+    }
+}
+@media screen and (max-width: 1096px) {
+    .menu {
+        width: 50px*@percent-screen-s;
+        font-size: 14px*@percent-screen-s;
+        .dv {
+            .ul {
+                .li {
+                    padding: 0 0 13px*@percent-screen-s 0;
+                    .img {
+                        width: 24px*@percent-screen-s;
+                        height: 24px*@percent-screen-s;
+                        margin: 13px*@percent-screen-s;
+                    }  
+                }
+            }
+            .ul-bottom {
+                top: 360px*@percent-screen-m;
             }
         }
     }

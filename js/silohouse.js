@@ -34,9 +34,9 @@ function appinit() {
     // 绑定click事件,目前主要处理右键
     app.on('mouseup', click_all_callback);
 }
-function click_all_callback(e) {
-    e.preventDefault();
-    if (e.button == 2) {//判断是右键点击       
+function click_all_callback(event) {
+    event.preventDefault();
+    if (event.button == 2) {//判断是右键点击       
     
         //console.log("右键了,返回视角");
         if(lastDblClickBund != null) {
@@ -62,11 +62,11 @@ function click_all_callback(e) {
 // 点击变色
 var lastClickBund = null;
 var lastClickBundUI = null;
-function click_bound_callback(pickObj) {
+function click_bound_callback(event) {
     //先恢复上次点击的
     recover_click_bound();
     // 记录点击的物体
-    lastClickBund = pickObj;
+    lastClickBund = event.pickedObj;
     lastClickBund.style.color = 0x6495ED;
     //已显示 ui 先干掉
     if (lastClickBundUI != null) {
@@ -117,9 +117,12 @@ function recover_click_bound() {
     //如果ui显示 隐藏
 }
 var lastDblClickBund = null;
-function dblclick_bound_callback(pickObj) {
+function dblclick_bound_callback(event) {
+    // 如果有云图,立刻删除
+    if (lastHeatMapMesh != null)
+        destroyMeshHeatmap();
     // 如果双击和单机是同一个物体,把单机还原了
-    if (lastClickBund == pickObj) {
+    if (lastClickBund == event.pickedObj) {
         recover_click_bound();
     }
     //记录摄影机位置
@@ -128,7 +131,7 @@ function dblclick_bound_callback(pickObj) {
     //恢复上一次的粮仓
     recover_anim();
     {
-        var obj = pickObj.findParts("gaizi")[0];
+        var obj = event.pickedObj.findParts("gaizi")[0];
         obj.move({
             'offset': [0, 80, 0],
             'time': 300
@@ -136,18 +139,16 @@ function dblclick_bound_callback(pickObj) {
     }
     //飞到
     app.camera.flyTo({
-        position: [pickObj.position[0],pickObj.position[1]+70,pickObj.position[2] -30],
-        target: [pickObj.position[0],pickObj.position[1],pickObj.position[2]],
+        position: [event.pickedObj.position[0],event.pickedObj.position[1]+70,event.pickedObj.position[2] -30],
+        target: [event.pickedObj.position[0],event.pickedObj.position[1],event.pickedObj.position[2]],
         time: 1000,	// 耗时毫秒
         complete:function() {
             if (uiData.cloud == true) {
-                if (lastHeatMapMesh != null)
-                    destroyMeshHeatmap();
                 createMeshHeatmap();
             }
         }
     });
-    lastDblClickBund = pickObj;
+    lastDblClickBund = event.pickedObj;
 }
 //恢复粮仓盖子
 function recover_anim() {
@@ -530,7 +531,6 @@ function guiinit(){
                     isClose: false,//close属性配置是否有关闭按钮，默认没有，是为true，否为false
                     opacity: 0.8,
                 });
-                //gui.remember(posSys.info);
                 for (var key in posSys.info) {
                     gui.add(posSys.info,key);
                 }
@@ -555,7 +555,7 @@ var mapCanvas = null;
 var lastHeatMapMesh = null;
 function destroyMeshHeatmap() {
     if (lastHeatMapMesh != null)
-        app._real.scene.remove(lastHeatMapMesh);
+        app.debug.scene.remove(lastHeatMapMesh);
     if (mapCanvas != null)  {
         delete mapCanvas;
         mapCanvas = null;
@@ -565,8 +565,8 @@ function createMeshHeatmap() {
     mapCanvas = document.createElement('canvas');
     var w = 20;
     var h = 10;
-    mapCanvas.width = w;//app._real.domElement.style.width;
-    mapCanvas.height = h;//app._real.domElement.style.height;
+    mapCanvas.width = w;//app.debug.domElement.style.width;
+    mapCanvas.height = h;//app.debug.domElement.style.height;
     heatmap = createWebGLHeatmap({width: lastDblClickBund.size[0], height: lastDblClickBund.size[2],canvas: mapCanvas });
 
     //heatmap.clear();
@@ -604,7 +604,7 @@ function createMeshHeatmap() {
             side: THREE.DoubleSide
         })
     );
-    app._real.scene.add(lastHeatMapMesh);
+    app.debug.scene.add(lastHeatMapMesh);
     lastHeatMapMesh.position.set( lastDblClickBund.position[0], lastDblClickBund.size[1]+1, lastDblClickBund.position[2] );
     ///lastHeatMapMesh.rotation = lastDblClickBund.node.rotation;
     // 旋转90度, 参数是 弧度
@@ -718,13 +718,18 @@ var positionSystem = {
         });
     }
 };
+var CameraRotateIng = false;
 function CameraRotateByAxis( angle, axis) {
+    if (CameraRotateIng == true)
+        return;
+    CameraRotateIng = true;
     /*
     *camera:相机
     *angle：旋转角度
     *segs:分段，即圆弧对应的路径分为几段
     *time：动画执行的时间
     */
+    
     var camera = app.camera.realCamera;
     var segs = Math.abs(angle / 2);
     var time = 10;//毫秒
@@ -772,6 +777,7 @@ function CameraRotateByAxis( angle, axis) {
     var id = setInterval(function () {
         if (flag == segs) {
             app.camera.orbit.enabled = savedEnabled;
+            CameraRotateIng = false;
             clearInterval(id);
         } else {
             var v3 = endPosArray[flag];
@@ -795,7 +801,8 @@ function MenuItemClick(elem,item) {
             Change3D(true);
         }
     } else if (item == "rot") {
-        CameraRotateByAxis(90);
+        if (cameraChange3D == true) //2d不旋转
+            CameraRotateByAxis(90);
     } else if (item == "reset") {
         Change3D(true);
     }
@@ -810,7 +817,7 @@ function switchCamera() {
         camera.position.x = 2;
         camera.position.y = 1;
         camera.position.z = 3;
-        camera.lookAt(app._real.scene.position);
+        camera.lookAt(app.debug.scene.position);
         perspective = "Orthographic";
     } else {
         camera = new THREE.PerspectiveCamera(45,
@@ -818,7 +825,7 @@ function switchCamera() {
         camera.position.x = 120;
         camera.position.y = 60;
         camera.position.z = 180;
-        camera.lookAt(app._real.scene.position);
+        camera.lookAt(app.debug.scene.position);
         perspective = "Perspective";
     }
     app.camera.realCamera = camera;
@@ -827,11 +834,13 @@ function switchCamera() {
 function _clamp ( v, minv, maxv ) {
     return ( v < minv ) ? minv : ( ( v > maxv ) ? maxv : v );    
 }
+var cameraChange3D = true;
 function Change3D ( bool ) {
+    cameraChange3D = bool;
     // 防止旋转时候中断的bug
     app.camera.orbit.enabled = true;    
     // 获取场景的大小
-    var box = new THREE.Box3().setFromObject(app._real.scene);
+    var box = new THREE.Box3().setFromObject(app.debug.scene);
     var offsetFactor = [0,1,0];
     var radius = box.getSize().length();//lenght 返回的是对角线长    
     var center = box.getCenter();
