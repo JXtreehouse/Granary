@@ -11,7 +11,7 @@ window.onload = function() {
             console.log("app scene loaded");
             appinit();
             guiinit();
-            posinit();
+            initsimdata();
         }
     });    
     // update
@@ -33,11 +33,18 @@ function appinit() {
     siloHouse.bound.on('dblclick', dblclick_bound_callback);
     // 绑定click事件,目前主要处理右键
     app.on('mouseup', click_all_callback);
+    app.on('mousedown', click_all_callback_down);
+}
+var mousedownPos = new THREE.Vector2();
+//鼠标点击的位置记录一下
+function click_all_callback_down(event) {
+    mousedownPos.set(event.x,event.y);
 }
 function click_all_callback(event) {
     event.preventDefault();
-    if (event.button == 2) {//判断是右键点击       
-    
+    var np = new THREE.Vector2(event.x,event.y);
+    // 鼠标如果和按下时候差 4个像素,就不执行右键了
+    if (event.button == 2 && mousedownPos.distanceTo(np) < 4 && app.camera.flying == false && CameraRotateIng == false ) {
         //console.log("右键了,返回视角");
         if(lastDblClickBund != null) {
             //恢复上一次的粮仓
@@ -107,9 +114,11 @@ function click_bound_callback(event) {
         hasTitle: true,
         domWidth:"450px"
     });
+    lastClickBundUI.setZIndex(999999);
     //先用测试方法
     lastClickBundUI.addTab(uiData);
     lastClickBundUI.setPosition({left:300, top: 50});
+    lastClickBundUI.bind('close',recover_click_bound);
 }
 function recover_click_bound() {
     if (lastClickBund != null)
@@ -118,6 +127,9 @@ function recover_click_bound() {
 }
 var lastDblClickBund = null;
 function dblclick_bound_callback(event) {
+    //两次双击同一个物体,不响应
+    if( lastDblClickBund == event.pickedObj)
+        return;
     // 如果有云图,立刻删除
     if (lastHeatMapMesh != null)
         destroyMeshHeatmap();
@@ -161,7 +173,7 @@ function recover_anim() {
         lastDblClickBund = null;
     }
 }
-var gui;
+var functionMenuGui;
 var uiData = {
     warehouseCode: false,
     temperature: false,
@@ -173,6 +185,22 @@ var uiData = {
     video: false,
     cloud: false,
     orientation: false
+}
+// 初始化模拟数据
+function initsimdata() {
+    // 模拟粮食
+    siloHouse.grain.forEach(function(obj) {
+        // 随机 百分比 显示 并设置给 物体的高
+        var ram = parseInt(100*Math.random());
+        if (obj.attr("形状") == "圆") {
+            obj.node.scale.y = 5.3 * (ram * 0.01);
+        } else{
+            obj.node.scale.y = 1.3 * (ram * 0.01);
+        }
+        obj.attr("粮食储量", ram);
+    });
+    // 定位模拟
+    posinit();
 }
 function guiinit(){
     
@@ -186,20 +214,20 @@ function guiinit(){
             }
         }
     }
-    var gui = new dat.gui.GUI({
+    functionMenuGui = new dat.gui.GUI({
         type: 'icon1'
     });
-    gui.setPosition({"top":0,"left":50})
-    var img0 = gui.addImageBoolean(uiData, 'warehouseCode').name('仓库编号');
-    var img1 = gui.addImageBoolean(uiData, 'temperature').name('温度检测');
-    var img2 = gui.addImageBoolean(uiData, 'humidity').name('湿度检测');
-    var img3 = gui.addImageBoolean(uiData, 'statistics').name('能耗统计');
-    var img4 = gui.addImageBoolean(uiData, 'status').name('保粮状态');
-    var img5 = gui.addImageBoolean(uiData, 'insect').name('虫害');
-    var img6 = gui.addImageBoolean(uiData, 'cerealsReserve').name('粮食储量');
-    var img7 = gui.addImageBoolean(uiData, 'video').name('视屏监控');
-    var img8 = gui.addImageBoolean(uiData, 'cloud').name('温度云图');
-    var img9 = gui.addImageBoolean(uiData, 'orientation').name('人车定位');
+    functionMenuGui.setPosition({"top":0,"left":50});
+    var img0 = functionMenuGui.addImageBoolean(uiData, 'warehouseCode').name('仓库编号');
+    var img1 = functionMenuGui.addImageBoolean(uiData, 'temperature').name('温度检测');
+    var img2 = functionMenuGui.addImageBoolean(uiData, 'humidity').name('湿度检测');
+    var img3 = functionMenuGui.addImageBoolean(uiData, 'statistics').name('能耗统计');
+    var img4 = functionMenuGui.addImageBoolean(uiData, 'status').name('保粮状态');
+    var img5 = functionMenuGui.addImageBoolean(uiData, 'insect').name('虫害');
+    var img6 = functionMenuGui.addImageBoolean(uiData, 'cerealsReserve').name('粮食储量');
+    var img7 = functionMenuGui.addImageBoolean(uiData, 'video').name('视屏监控');
+    var img8 = functionMenuGui.addImageBoolean(uiData, 'cloud').name('温度云图');
+    var img9 = functionMenuGui.addImageBoolean(uiData, 'orientation').name('人车定位');
 
     img0.imgUrl('http://47.93.162.148:8081/liangyw/images/button/warehouse_code.png');
     img1.imgUrl('http://47.93.162.148:8081/liangyw/images/button/temperature.png');
@@ -234,13 +262,14 @@ function guiinit(){
                     name: obj.name,
                     domWidth:"70px",
                     isClose: false,
+                    t3d:app,
                     opacity: 0.8,
                 });
                 gui.add(data, 'number').name('');
                 obj.addUI(gui.domElement, [0, obj.size[1] , 0 ],[0,3]); // 参数1 ui dom元素 参数2 相对于物体的偏移值 x y z(3D空间坐标) 参数3 ui 的轴心点 x y 百分比 0-1
                 var that = obj;
                 gui.bind('click', function() {
-                    click_bound_callback(that);
+                    click_bound_callback({pickedObj:that});
                 });
                 obj.data = data;
                 obj.uiDom = gui;
@@ -269,6 +298,7 @@ function guiinit(){
                     cornerType: 's2c3',
                     name: obj.name,
                     domWidth:"120px",
+                    t3d:app,
                     opacity: 0.8,
                 });
                 gui.add(data, 'number').name('温度');
@@ -302,6 +332,7 @@ function guiinit(){
                     cornerType: 's2c3',
                     name: obj.name,
                     domWidth:"120px",
+                    t3d:app,
                     opacity: 0.8,
                 });
                 gui.add(data, 'number').name('湿度');
@@ -334,6 +365,7 @@ function guiinit(){
                     cornerType: 's2c3',
                     name: obj.name,
                     domWidth:"150px",
+                    t3d:app,
                     opacity: 0.8,
                 });
                 gui.add(data, 'number').name('能耗');
@@ -366,6 +398,7 @@ function guiinit(){
                     cornerType: 's2c3',
                     name: obj.name,
                     domWidth:"120px",
+                    t3d:app,
                     opacity: 0.8,
                 });
                 gui.add(data, 'number').name('保粮');
@@ -398,6 +431,7 @@ function guiinit(){
                     cornerType: 's2c3',
                     name: obj.name,
                     domWidth:"120px",
+                    t3d:app,
                     opacity: 0.8,
                 });
                 gui.add(data, 'number').name('虫害');
@@ -419,10 +453,8 @@ function guiinit(){
             siloHouse.window.visible = false;
 
             siloHouse.grain.forEach(function(obj) {
-                // 随机 百分比 显示 并设置给 物体的高
-                var ram = parseInt(100*Math.random());
                 var data = {
-                    number: ram +"%"
+                    number: obj.attr("粮食储量") +"%"
                 };
                 var gui = new dat.gui.GUI({
                     type: 'signboard1',
@@ -430,13 +462,13 @@ function guiinit(){
                     hasTitle: true,
                     domWidth:"120px",
                     isClose: false,//close属性配置是否有关闭按钮，默认没有，是为true，否为false
+                    t3d:app,
                     opacity: 0.8,
                 });
                 gui.add(data, 'number').name('储量');
                 obj.addUI(gui.domElement, [0, obj.size[1] , 0 ],[0,1]); // 参数1 ui dom元素 参数2 相对于物体的偏移值 x y z(3D空间坐标) 参数3 ui 的轴心点 x y 百分比 0-1
                 
                 obj.data = data;
-                obj.node.scale.y = 1 * (ram * 0.01);
                 obj.uiDom = gui;
             });
         } else {
@@ -499,6 +531,13 @@ function guiinit(){
                     cameraIframeUI.addIframe(ui2data, 'iframe').name("　").iframeUrl("http://shuidi.huajiao.com/pc/player_autosize.html?sn=36061726627&channel=hide").setHeight('300px');
                     // ui位置默认在 右上角                  
                     cameraIframeUI.setPosition({left:app.domElement.offsetWidth - cameraIframeUI.domElement.offsetWidth - 100, top: 100});
+                    cameraIframeUI.setZIndex(999999);
+                    //关闭时候把自己干掉 放置 直播的声音还在
+                    cameraIframeUI.bind('close',function() {
+                        if (cameraIframeUI != null) {
+                            cameraIframeUI.destroy();
+                        }
+                    }); 
                 });
                 gui.add(data, 'name').name('视频');
                 // 取物体的size 顶在物体的头顶
@@ -512,7 +551,8 @@ function guiinit(){
         if (!bool){ // 关闭状态 删除
             destroyMeshHeatmap();
         } else {
-            if ( lastDblClickBund != null) { 
+            // 飞行中不能创建
+            if ( lastDblClickBund != null && app.camera.flying == false) { 
                 createMeshHeatmap();
             }
         }
@@ -529,6 +569,7 @@ function guiinit(){
                     name: '车',
                     domWidth:"250px",
                     isClose: false,//close属性配置是否有关闭按钮，默认没有，是为true，否为false
+                    t3d:app,
                     opacity: 0.8,
                 });
                 for (var key in posSys.info) {
@@ -579,7 +620,7 @@ function createMeshHeatmap() {
     for (var i = 0 ; i < 40; i++) {
         var x = Random(1 , 37 );
         var y = Random(1 ,25 );
-        var v = Random(1 ,10 );
+        var v = Random(1 ,15 );
         //console.log(x+"_" + y + "_" + v);
         heatmap.addPoint( x, y, v, 1);
     }
@@ -720,9 +761,15 @@ var positionSystem = {
 };
 var CameraRotateIng = false;
 function CameraRotateByAxis( angle, axis) {
-    if (CameraRotateIng == true)
+    if ( cameraChange3DFlying == true)
+        return;
+    if ( app.camera.flying == true )
+        return;
+    if ( CameraRotateIng == true)
         return;
     CameraRotateIng = true;
+    //放置ui 抖动 旋转时候 停止 
+    app.debug.picker.enabled = false;
     /*
     *camera:相机
     *angle：旋转角度
@@ -730,7 +777,7 @@ function CameraRotateByAxis( angle, axis) {
     *time：动画执行的时间
     */
     
-    var camera = app.camera.realCamera;
+    var camera = app.debug.camera;
     var segs = Math.abs(angle / 2);
     var time = 10;//毫秒
 
@@ -778,6 +825,7 @@ function CameraRotateByAxis( angle, axis) {
         if (flag == segs) {
             app.camera.orbit.enabled = savedEnabled;
             CameraRotateIng = false;
+            app.debug.picker.enabled = true;
             clearInterval(id);
         } else {
             var v3 = endPosArray[flag];
@@ -787,30 +835,43 @@ function CameraRotateByAxis( angle, axis) {
         }
     }, time / segs);
 }
-
+var functionMenuGuiState = true;
+var htmlElem2d3d = null;
 // 处理左侧菜单
 function MenuItemClick(elem,item) {
-    if (item == "cam") {       
-        if (elem.children[1].innerText == "2D") {
-            elem.children[0].className = 'img img-3d';
-            elem.children[1].innerText = "3D"
-            Change3D(false);
-        } else {
-            elem.children[0].className = 'img img-2d';
-            elem.children[1].innerText = "2D"
-            Change3D(true);
+    if (item == "cam") {
+        if( CameraRotateIng == false ) {     
+            if (elem.children[1].innerText == "2D") {
+                elem.children[0].className = 'img img-3d';
+                elem.children[1].innerText = "3D"
+                Change3D(false);
+            } else {
+                elem.children[0].className = 'img img-2d';
+                elem.children[1].innerText = "2D"
+                Change3D(true);
+            }
         }
+        htmlElem2d3d = elem;
     } else if (item == "rot") {
-        if (cameraChange3D == true) //2d不旋转
+        if (cameraChange3D == true ) //2d不旋转
             CameraRotateByAxis(90);
     } else if (item == "reset") {
-        Change3D(true);
+        if(CameraRotateIng == false && cameraChange3DFlying == false) {//摄影机旋转停止了和不飞了,才能恢复
+            Change3D(true);
+            if (htmlElem2d3d != null) {//恢复时候 还原 ui成 2d
+                htmlElem2d3d.children[0].className = 'img img-2d';
+                htmlElem2d3d.children[1].innerText = "2D"
+            }
+        }
+    } else if (item == "fun") {
+        functionMenuGuiState = !functionMenuGuiState;
+        functionMenuGui.show(functionMenuGuiState);
     }
 }
 
 var perspective;
 function switchCamera() {
-    var camera = app.camera.realCamera;
+    var camera = app.debug.camera;
     if (camera instanceof THREE.PerspectiveCamera) {
         camera = new THREE.OrthographicCamera(
         window.innerWidth / - 16, window.innerWidth / 16,window.innerHeight / 16, window.innerHeight / - 16, -200, 500 );
@@ -828,13 +889,14 @@ function switchCamera() {
         camera.lookAt(app.debug.scene.position);
         perspective = "Perspective";
     }
-    app.camera.realCamera = camera;
+    app.debug.camera = camera;
 };
  
 function _clamp ( v, minv, maxv ) {
     return ( v < minv ) ? minv : ( ( v > maxv ) ? maxv : v );    
 }
 var cameraChange3D = true;
+var cameraChange3DFlying = false;
 function Change3D ( bool ) {
     cameraChange3D = bool;
     // 防止旋转时候中断的bug
@@ -855,10 +917,14 @@ function Change3D ( bool ) {
         eyePos = [center.x + radius * offsetFactor[0], center.y + radius * offsetFactor[1], center.z + radius * offsetFactor[2] ];
         app.camera.orbit.enableRotate = true;
     }
+    cameraChange3DFlying = true;
     app.camera.flyTo({
         position: eyePos,
         target: [center.x,center.y,center.z],
-        time: 800 // 耗时毫秒
+        time: 800, // 耗时毫秒
+        complete:function() {
+            cameraChange3DFlying = false;
+        }
     });
 }
 // document.oncontextmenu = function (e) {
@@ -869,7 +935,7 @@ function Change3D ( bool ) {
 function initFps() {
     // var clock = new THREE.Clock();
 
-    // var camControls = new THREE.FirstPersonControls(app.camera.realCamera);
+    // var camControls = new THREE.FirstPersonControls(app.debug.camera);
     // camControls.lookSpeed = 0.4;
     // camControls.movementSpeed = 20;
     // camControls.noFly = true;
@@ -890,7 +956,7 @@ function initFps() {
 
 
 
-    var controls = new THREE.FirstPersonControls( app.camera.realCamera );
+    var controls = new THREE.FirstPersonControls( app.debug.camera );
     controls.lookSpeed = 0.1;
     controls.movementSpeed = 100;
     
@@ -907,7 +973,7 @@ function initFps() {
 
 function ccc () {
         //var prevCamera = camera;
-        camera = app.camera.realCamera;
+        camera = app.debug.camera;
         //camera = new THREE.PerspectiveCamera(...);
         //camera.position.copy( prevCamera.position );
         //camera.rotation.copy( prevCamera.rotation );
