@@ -5,7 +5,7 @@ window.onload = function() {
     app = new t3d.App({
         el: "div3d",
         skyBox: 'BlueSky',
-        url: "https://speech.uinnova.com/static/models/silohouse",
+        url: "http://uinnova-model.oss-cn-beijing.aliyuncs.com/scenes/silohouse",
         ak:"app_test_key",
         complete: function() {
             console.log("app scene loaded");
@@ -50,7 +50,7 @@ function click_all_callback(event) {
             //恢复上一次的粮仓
             recover_anim();            
             // 删除云图
-            if (lastHeatMapMesh != null)
+            if (currentHeatMapMesh != null)
                 destroyMeshHeatmap();
             //解决一个神器的bug, tween 在执行时候 右键会弹出保存图片菜单..... 延迟10毫秒执行右键
             window.setTimeout(function(){
@@ -131,7 +131,7 @@ function dblclick_bound_callback(event) {
     if( lastDblClickBund == event.pickedObj)
         return;
     // 如果有云图,立刻删除
-    if (lastHeatMapMesh != null)
+    if (currentHeatMapMesh != null)
         destroyMeshHeatmap();
     // 如果双击和单机是同一个物体,把单机还原了
     if (lastClickBund == event.pickedObj) {
@@ -156,7 +156,31 @@ function dblclick_bound_callback(event) {
         time: 1000,	// 耗时毫秒
         complete:function() {
             if (uiData.cloud == true) {
-                createMeshHeatmap();
+                var width =  400;
+                var height = 300;
+                var config = {
+                    minValue : 15,
+                    maxValue : 45,
+                    above : 1,
+                    scale : 1,
+                    radius : 25,
+                    blur : 50
+               }
+                // 生成数据
+                var data = [];
+                var segX = Math.ceil( width / config.radius );
+                var segY = Math.ceil( height / config.radius );
+                var w = width/segX;
+	            var h = height/segY;
+                for (var i = 0 ;i < segX; i++) {
+                    var x = i*w + w*0.5;
+                    for (var j =0; j < segY; j++) {
+                        var y = j*h + h*0.5;
+                        data.push( [x,y,RandomNoRepeat(config.minValue,config.maxValue)] );
+                    }
+                }
+                //refObj,width,height,data,config{minValue,maxValue,above,scale,radius,blur}
+                createMeshHeatmap(lastDblClickBund,width,height,data,config);
             }
         }
     });
@@ -197,7 +221,7 @@ function initsimdata() {
         } else{
             obj.node.scale.y = 1.3 * (ram * 0.01);
         }
-        obj.attr("粮食储量", ram);
+        obj.attr("粮食储量", ram);  
     });
     // 定位模拟
     posinit();
@@ -552,8 +576,32 @@ function guiinit(){
             destroyMeshHeatmap();
         } else {
             // 飞行中不能创建
-            if ( lastDblClickBund != null && app.camera.flying == false) { 
-                createMeshHeatmap();
+            if ( lastDblClickBund != null && app.camera.flying == false) {
+                var width =  400;
+                var height = 300;
+                var config = {
+                    minValue : 15,
+                    maxValue : 45,
+                    above : 1,
+                    scale : 1,
+                    radius : 25,
+                    blur : 50
+               }
+                // 生成数据
+                var data = [];
+                var segX = Math.ceil( width / config.radius );
+                var segY = Math.ceil( height / config.radius );
+                var w = width/segX;
+	            var h = height/segY;
+                for (var i = 0 ;i < segX; i++) {
+                    var x = i*w + w*0.5;
+                    for (var j =0; j < segY; j++) {
+                        var y = j*h + h*0.5;
+                        data.push( [x,y,RandomNoRepeat(config.minValue,config.maxValue)] );
+                    }
+                }
+                //refObj,width,height,data,config{minValue,maxValue,above,scale,radius,blur}
+                createMeshHeatmap(lastDblClickBund,width,height,data,config);
             }
         }
     });
@@ -593,70 +641,74 @@ function guiinit(){
 var cameraIframeUI = null;
 // 云图相关
 var mapCanvas = null;
-var lastHeatMapMesh = null;
+var currentHeatMapMesh = null;
+var texture = null;
 function destroyMeshHeatmap() {
-    if (lastHeatMapMesh != null)
-        app.debug.scene.remove(lastHeatMapMesh);
+    if (currentHeatMapMesh != null)
+        app.debug.scene.remove(currentHeatMapMesh);
     if (mapCanvas != null)  {
+        //document.body.removeChild(mapCanvas);
         delete mapCanvas;
         mapCanvas = null;
     }
 }
-function createMeshHeatmap() {
+
+//refObj,width,height,data,minValue,maxValue,above,scale
+function createMeshHeatmap(refObj,width, height,data,config) {
+    if (config === undefined)
+        config = {};
+    if (config.minValue === undefined)
+        config.minValue = 10;
+    if (config.maxValue === undefined)
+        config.maxValue = 50;
+    if (config.above === undefined)
+        config.above = 1;
+    if (config.scale === undefined)
+        config.scale = 1;
+    if (config.radius === undefined)
+        config.radius = 25;
+    if (config.blur === undefined)
+        config.blur = 50    
     mapCanvas = document.createElement('canvas');
-    var w = 20;
-    var h = 10;
-    mapCanvas.width = w;//app.debug.domElement.style.width;
-    mapCanvas.height = h;//app.debug.domElement.style.height;
-    heatmap = createWebGLHeatmap({width: lastDblClickBund.size[0], height: lastDblClickBund.size[2],canvas: mapCanvas });
-
-    //heatmap.clear();
-
-    //模拟三个点
-    // heatmap.addPoint(1, 1, 30,1);
-    // heatmap.addPoint(14, 5, 30,1);
-    // heatmap.addPoint(37, 10, 30, 1);//37
-    //
-    for (var i = 0 ; i < 40; i++) {
-        var x = Random(1 , 37 );
-        var y = Random(1 ,25 );
-        var v = Random(1 ,15 );
-        //console.log(x+"_" + y + "_" + v);
-        heatmap.addPoint( x, y, v, 1);
-    }
-    // heatmap.adjustSize();
-    heatmap.update(); // adds the buffered points
-    heatmap.display(); // adds the buffered points
-    heatmap.clamp(0.0, 1.0);// 取值范围
-    heatmap.multiply(0.995)
-    heatmap.blur(); //模糊
-    //app.camera.update(); 
-
-    var texture = new THREE.Texture(mapCanvas);
+    mapCanvas.width = width;
+    mapCanvas.height = height;
+    mapCanvas.style.position = "absolute";
+    mapCanvas.style.left = "0px";
+    mapCanvas.style.top = "0px";
+    //mapCanvas.style.backgroundColor = 'rgba(0,0,255,0.2)';
+    //document.body.appendChild(mapCanvas);
+    var heat = simpleheat(mapCanvas).data(data).max(config.maxValue).min(config.minValue);
+    heat.radius(config.radius,config.blur);
+    heat.draw();
+   
+    texture = new THREE.Texture(mapCanvas);//document.querySelector('.heatmap-canvas')
     texture.needsUpdate = true;
-
-    lastHeatMapMesh = new THREE.Mesh(
+    
+    var basicMat = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide
+    });
+    //basicMat.transparent = true;
+    currentHeatMapMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(
-            lastDblClickBund.size[0],
-            lastDblClickBund.size[2]
+            refObj.size[0],
+            refObj.size[2]
         ),
-        new THREE.MeshBasicMaterial({
-            map: texture,
-            side: THREE.DoubleSide
-        })
+        basicMat
     );
-    app.debug.scene.add(lastHeatMapMesh);
-    lastHeatMapMesh.position.set( lastDblClickBund.position[0], lastDblClickBund.size[1]+1, lastDblClickBund.position[2] );
-    ///lastHeatMapMesh.rotation = lastDblClickBund.node.rotation;
+    app.debug.scene.add(currentHeatMapMesh);
+    currentHeatMapMesh.position.set( refObj.position[0], refObj.size[1] + config.above, refObj.position[2] );
+    currentHeatMapMesh.scale.x = config.scale;
+    currentHeatMapMesh.scale.z = config.scale;
     // 旋转90度, 参数是 弧度
-    lastHeatMapMesh.rotateX(Math.PI / 2 );
-    //lastHeatMapMesh.rotateY(Math.PI / 2 );
+    currentHeatMapMesh.rotateX(Math.PI / 2 );
+    currentHeatMapMesh.rotateY(Math.PI);
 }
-
-function Random (min,max) {
+//随机生成不重复的
+function RandomNoRepeat(min,max) {
     var originalArray = new Array;
-    for (var i=min;i<max;i++){ 
-        originalArray[i]=i+1; 
+    for (var i=min;i<max;i++){
+        originalArray[i]=i+1;
     } 
     originalArray.sort(function(){ return 0.5 - Math.random(); }); 
     return originalArray[0];    
