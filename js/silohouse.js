@@ -5,7 +5,7 @@ window.onload = function() {
     app = new t3d.App({
         el: "div3d",
         skyBox: 'BlueSky',
-        url: "http://uinnova-model.oss-cn-beijing.aliyuncs.com/scenes/silohouse",
+        url: "https://uinnova-model.oss-cn-beijing.aliyuncs.com/scenes/silohouse",
         ak:"app_test_key",
         complete: function() {
             console.log("app scene loaded");
@@ -21,6 +21,8 @@ window.onload = function() {
 }
 var siloHouse = {};
 function appinit() {
+    //解决移动场景时候帧率低的问题
+    app.debug.picker.enablePickMouseMove = false;
     //数据收集
     siloHouse.bound = app.query("[物体类型=粮仓]");
     siloHouse.door = app.query("[物体类型=粮仓门]");
@@ -34,6 +36,13 @@ function appinit() {
     // 绑定click事件,目前主要处理右键
     app.on('mouseup', click_all_callback);
     app.on('mousedown', click_all_callback_down);
+
+    // 屏蔽鼠标右键系统菜单
+    document.body.oncontextmenu = function(evt) {
+        evt = evt || event;
+        evt.returnValue = false;
+        return false;
+    };
 }
 var mousedownPos = new THREE.Vector2();
 //鼠标点击的位置记录一下
@@ -51,7 +60,7 @@ function click_all_callback(event) {
             recover_anim();            
             // 删除云图
             if (currentHeatMapMesh != null)
-                destroyMeshHeatmap();
+                destroyMeshHeatmap(currentHeatMapMesh);
             //解决一个神器的bug, tween 在执行时候 右键会弹出保存图片菜单..... 延迟10毫秒执行右键
             window.setTimeout(function(){
                 app.camera.flyTo({
@@ -132,7 +141,7 @@ function dblclick_bound_callback(event) {
         return;
     // 如果有云图,立刻删除
     if (currentHeatMapMesh != null)
-        destroyMeshHeatmap();
+        destroyMeshHeatmap(currentHeatMapMesh);
     // 如果双击和单机是同一个物体,把单机还原了
     if (lastClickBund == event.pickedObj) {
         recover_click_bound();
@@ -144,7 +153,7 @@ function dblclick_bound_callback(event) {
     recover_anim();
     {
         var obj = event.pickedObj.findParts("gaizi")[0];
-        obj.move({
+        obj.moveTo({
             'offset': [0, 80, 0],
             'time': 300
         }); 
@@ -180,7 +189,7 @@ function dblclick_bound_callback(event) {
                     }
                 }
                 //refObj,width,height,data,config{minValue,maxValue,above,scale,radius,blur}
-                createMeshHeatmap(lastDblClickBund,width,height,data,config);
+                currentHeatMapMesh = createMeshHeatmap(lastDblClickBund,width,height,data,config);
             }
         }
     });
@@ -190,7 +199,7 @@ function dblclick_bound_callback(event) {
 function recover_anim() {
     if (lastDblClickBund !=null) {
         var obj = lastDblClickBund.findParts("gaizi")[0];
-        obj.move({
+        obj.moveTo({
             'offset': [0, -obj.node.position.y, 0],
             'time': 300
         });
@@ -215,7 +224,8 @@ function initsimdata() {
     // 模拟粮食
     siloHouse.grain.forEach(function(obj) {
         // 随机 百分比 显示 并设置给 物体的高
-        var ram = parseInt(100*Math.random());
+        var ram = Math.ceil(Math.random()*100+10);
+                
         if (obj.attr("形状") == "圆") {
             obj.node.scale.y = 5.3 * (ram * 0.01);
         } else{
@@ -573,7 +583,7 @@ function guiinit(){
     //云图
     img8.onChange(function(bool) {
         if (!bool){ // 关闭状态 删除
-            destroyMeshHeatmap();
+            destroyMeshHeatmap(currentHeatMapMesh);
         } else {
             // 飞行中不能创建
             if ( lastDblClickBund != null && app.camera.flying == false) {
@@ -601,7 +611,7 @@ function guiinit(){
                     }
                 }
                 //refObj,width,height,data,config{minValue,maxValue,above,scale,radius,blur}
-                createMeshHeatmap(lastDblClickBund,width,height,data,config);
+                currentHeatMapMesh = createMeshHeatmap(lastDblClickBund,width,height,data,config);
             }
         }
     });
@@ -640,17 +650,17 @@ function guiinit(){
 }
 var cameraIframeUI = null;
 // 云图相关
-var mapCanvas = null;
+// var mapCanvas = null;
 var currentHeatMapMesh = null;
 var texture = null;
-function destroyMeshHeatmap() {
-    if (currentHeatMapMesh != null)
-        app.debug.scene.remove(currentHeatMapMesh);
-    if (mapCanvas != null)  {
-        //document.body.removeChild(mapCanvas);
-        delete mapCanvas;
-        mapCanvas = null;
-    }
+function destroyMeshHeatmap(heatMapMesh) {
+    if (heatMapMesh != null)
+        app.debug.scene.remove(heatMapMesh);
+    // if (mapCanvas != null)  {
+    //     //document.body.removeChild(mapCanvas);
+    //     delete mapCanvas;
+    //     mapCanvas = null;
+    // }
 }
 
 //refObj,width,height,data,minValue,maxValue,above,scale
@@ -668,8 +678,8 @@ function createMeshHeatmap(refObj,width, height,data,config) {
     if (config.radius === undefined)
         config.radius = 25;
     if (config.blur === undefined)
-        config.blur = 50    
-    mapCanvas = document.createElement('canvas');
+        config.blur = 50;
+    var mapCanvas = document.createElement('canvas');
     mapCanvas.width = width;
     mapCanvas.height = height;
     mapCanvas.style.position = "absolute";
@@ -689,20 +699,22 @@ function createMeshHeatmap(refObj,width, height,data,config) {
         side: THREE.DoubleSide
     });
     //basicMat.transparent = true;
-    currentHeatMapMesh = new THREE.Mesh(
+    var heatMapMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(
             refObj.size[0],
             refObj.size[2]
         ),
         basicMat
     );
-    app.debug.scene.add(currentHeatMapMesh);
-    currentHeatMapMesh.position.set( refObj.position[0], refObj.size[1] + config.above, refObj.position[2] );
-    currentHeatMapMesh.scale.x = config.scale;
-    currentHeatMapMesh.scale.z = config.scale;
+    app.debug.scene.add(heatMapMesh);
+    heatMapMesh.position.set( refObj.position[0], refObj.size[1] + config.above, refObj.position[2] );
+    heatMapMesh.scale.x = config.scale;
+    heatMapMesh.scale.z = config.scale;
     // 旋转90度, 参数是 弧度
-    currentHeatMapMesh.rotateX(Math.PI / 2 );
-    currentHeatMapMesh.rotateY(Math.PI);
+    heatMapMesh.rotateX(Math.PI / 2 );
+    // 旋转180度
+    heatMapMesh.rotateY(Math.PI);
+    return heatMapMesh;
 }
 //随机生成不重复的
 function RandomNoRepeat(min,max) {
@@ -801,7 +813,7 @@ var positionSystem = {
         that._obj = app.create({
             type: 'Thing',
             name: "truck",
-            url: "truck",
+            url: "https://speech.uinnova.com/static/models/truck",
             position: that.waypoints[0],
             angle: 0,
             complete: function(obj) {
