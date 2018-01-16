@@ -1,6 +1,4 @@
-var app;
-var cameraPosition;
-var cameraTarget;
+var app,cameraPosition,cameraTarget;
 window.onload = function() {
     app = new t3d.App({
         el: "div3d",
@@ -13,53 +11,39 @@ window.onload = function() {
             guiinit();
             initsimdata();
         }
-    });    
-    // update
-    // app.onupdate = function() {
-    //     //console.log("Update");
-    // }
+    });
 }
 var siloHouse = {};
 function appinit() {
-    //解决移动场景时候帧率低的问题
-    app.debug.picker.enablePickMouseMove = false;
+    app.debug.picker.enablePickMouseMove = false;//解决移动场景时候帧率低的问题
     //数据收集
     siloHouse.bound = app.query("[物体类型=粮仓]");
     siloHouse.door = app.query("[物体类型=粮仓门]");
     siloHouse.window = app.query("[物体类型=粮仓窗]");
     siloHouse.grain = app.query("[物体类型=粮食]");
     siloHouse.camera = app.query("[物体类型=摄像头]");
-    //资源 ui
     //事件注册
     siloHouse.bound.on('singleclick', click_bound_callback);
-    siloHouse.bound.on('dblclick', dblclick_bound_callback);
-    // 绑定click事件,目前主要处理右键
+    siloHouse.bound.on('dblclick', dblclick_bound_callback);    
     app.on('mouseup', click_all_callback);
     app.on('mousedown', click_all_callback_down);
-
-    // 屏蔽鼠标右键系统菜单
-    document.body.oncontextmenu = function(evt) {
+    document.body.oncontextmenu = function(evt) {// 屏蔽鼠标右键系统菜单
         evt = evt || event;
         evt.returnValue = false;
         return false;
     };
 }
 var mousedownPos = new THREE.Vector2();
-//鼠标点击的位置记录一下
 function click_all_callback_down(event) {
-    mousedownPos.set(event.x,event.y);
+    mousedownPos.set(event.x,event.y);//鼠标点击的位置记录一下
 }
 function click_all_callback(event) {
     event.preventDefault();
-    var np = new THREE.Vector2(event.x,event.y);
-    // 鼠标如果和按下时候差 4个像素,就不执行右键了
-    if (event.button == 2 && mousedownPos.distanceTo(np) < 4 && app.camera.flying == false && CameraRotateIng == false ) {
-        //console.log("右键了,返回视角");
+    var np = new THREE.Vector2(event.x,event.y);    
+    if (event.button == 2 && mousedownPos.distanceTo(np) < 4 && app.camera.flying == false && CameraRotateIng == false ) { // 鼠标如果和按下时候差 4个像素,就不执行右键了
         if(lastDblClickBund != null) {
-            //恢复上一次的粮仓
-            recover_anim();            
-            // 删除云图
-            if (currentHeatMapMesh != null)
+            recover_anim(); //恢复上一次的粮仓           
+            if (currentHeatMapMesh != null) // 删除云图
                 destroyMeshHeatmap(currentHeatMapMesh);
             //解决一个神器的bug, tween 在执行时候 右键会弹出保存图片菜单..... 延迟10毫秒执行右键
             window.setTimeout(function(){
@@ -69,9 +53,8 @@ function click_all_callback(event) {
                     time: 1300	// 耗时毫秒
                 });
             },10);
-        }        
-        //恢复单击变色
-        if (lastClickBund != null)
+        }
+        if (lastClickBund != null)//恢复单击变色
             lastClickBund.style.color = null;// 0xFFFFFF;
     }
 }
@@ -79,19 +62,13 @@ function click_all_callback(event) {
 var lastClickBund = null;
 var lastClickBundUI = null;
 function click_bound_callback(event) {
-    //先恢复上次点击的
-    recover_click_bound();
-    // 记录点击的物体
-    lastClickBund = event.pickedObj;
+    recover_click_bound();//先恢复上次点击的
+    lastClickBund = event.pickedObj; // 记录点击的物体
     lastClickBund.style.color = 0x6495ED;
-    //已显示 ui 先干掉
-    if (lastClickBundUI != null) {
-        lastClickBundUI.destroy();
-    }
-    // 生成模拟数据 并记录 到物体的 info 里
+    if (lastClickBundUI != null) //已显示 ui 先干掉
+        lastClickBundUI.destroy();  
     var uiData = {};
-    // 记录模拟信息,没有生成新的模拟数据
-    if (lastClickBund.info == null) {
+    if (lastClickBund.info == null) {// 生成模拟数据
         uiData =  {
             "基本信息": {
                 "品种": Math.ceil(Math.random()*2) == 1 ? "小麦":"玉米",
@@ -110,10 +87,10 @@ function click_bound_callback(event) {
                 "虫害": "无"
             }
         };
-        lastClickBund.info = uiData;
-    } else {
+        lastClickBund.info = uiData;// 记录 到物体的 info 里
+    } else{
         uiData = lastClickBund.info;
-    }    
+    }
     lastClickBundUI = new dat.gui.GUI({
         type:'signboard2',
         name: lastClickBund.name,
@@ -123,34 +100,27 @@ function click_bound_callback(event) {
         hasTitle: true,
         domWidth:"450px"
     });
-    lastClickBundUI.setZIndex(999999);
-    //先用测试方法
+    lastClickBundUI.setZIndex(999999);//设置ui排序
     lastClickBundUI.addTab(uiData);
     lastClickBundUI.setPosition({left:300, top: 50});
     lastClickBundUI.bind('close',recover_click_bound);
 }
 function recover_click_bound() {
     if (lastClickBund != null)
-    lastClickBund.style.color = null;//0xFFFFFF;
-    //如果ui显示 隐藏
+        lastClickBund.style.color = null;//0xFFFFFF;
 }
 var lastDblClickBund = null;
 function dblclick_bound_callback(event) {
-    //两次双击同一个物体,不响应
-    if( lastDblClickBund == event.pickedObj)
-        return;
-    // 如果有云图,立刻删除
-    if (currentHeatMapMesh != null)
+    if( lastDblClickBund == event.pickedObj) //两次双击同一个物体,不响应
+        return;    
+    if (currentHeatMapMesh != null)// 如果有云图,立刻删除
         destroyMeshHeatmap(currentHeatMapMesh);
-    // 如果双击和单机是同一个物体,把单机还原了
-    if (lastClickBund == event.pickedObj) {
-        recover_click_bound();
-    }
+    if (lastClickBund == event.pickedObj) // 如果双击和单机是同一个物体,把单机还原了
+        recover_click_bound();    
     //记录摄影机位置
     cameraPosition = app.camera.position;
-    cameraTarget = app.camera.target;
-    //恢复上一次的粮仓
-    recover_anim();
+    cameraTarget = app.camera.target;    
+    recover_anim();//恢复上一次的粮仓 打开状态
     {
         var obj = event.pickedObj.findParts("gaizi")[0];
         obj.moveTo({
@@ -158,8 +128,7 @@ function dblclick_bound_callback(event) {
             'time': 300
         }); 
     }
-    //飞到
-    app.camera.flyTo({
+    app.camera.flyTo({//飞到
         position: [event.pickedObj.position[0],event.pickedObj.position[1]+70,event.pickedObj.position[2] -30],
         target: [event.pickedObj.position[0],event.pickedObj.position[1],event.pickedObj.position[2]],
         time: 1000,	// 耗时毫秒
@@ -174,7 +143,7 @@ function dblclick_bound_callback(event) {
                     scale : 1,
                     radius : 25,
                     blur : 50
-               }
+                }
                 // 生成数据
                 var data = [];
                 var segX = Math.ceil( width / config.radius );
@@ -188,15 +157,13 @@ function dblclick_bound_callback(event) {
                         data.push( [x,y,RandomNoRepeat(config.minValue,config.maxValue)] );
                     }
                 }
-                //refObj,width,height,data,config{minValue,maxValue,above,scale,radius,blur}
                 currentHeatMapMesh = createMeshHeatmap(lastDblClickBund,width,height,data,config);
             }
         }
     });
     lastDblClickBund = event.pickedObj;
 }
-//恢复粮仓盖子
-function recover_anim() {
+function recover_anim() {//恢复粮仓盖子
     if (lastDblClickBund !=null) {
         var obj = lastDblClickBund.findParts("gaizi")[0];
         obj.moveTo({
@@ -205,6 +172,18 @@ function recover_anim() {
         });
         lastDblClickBund = null;
     }
+}
+function initsimdata() {// 初始化模拟数据
+    siloHouse.grain.forEach(function(obj) {// 模拟粮食
+        var ram = Math.ceil(Math.random()*100+10);// 随机 百分比 显示 并设置给 物体的高            
+        if (obj.attr("形状") == "圆") 
+            obj.node.scale.y = 5.3 * (ram * 0.01);
+        else
+            obj.node.scale.y = 1.3 * (ram * 0.01);
+        obj.attr("粮食储量", ram);  
+    });
+    // 定位模拟
+    posinit();
 }
 var functionMenuGui;
 var uiData = {
@@ -219,38 +198,14 @@ var uiData = {
     cloud: false,
     orientation: false
 }
-// 初始化模拟数据
-function initsimdata() {
-    // 模拟粮食
-    siloHouse.grain.forEach(function(obj) {
-        // 随机 百分比 显示 并设置给 物体的高
-        var ram = Math.ceil(Math.random()*100+10);
-                
-        if (obj.attr("形状") == "圆") {
-            obj.node.scale.y = 5.3 * (ram * 0.01);
-        } else{
-            obj.node.scale.y = 1.3 * (ram * 0.01);
-        }
-        obj.attr("粮食储量", ram);  
-    });
-    // 定位模拟
-    posinit();
-}
-function guiinit(){
-    
+function guiinit(){//ui 初始化
     function un_check(key) {
         for (var elem in uiData) {
-            //排除 云图 和 人车定位
-            if (elem != "cloud" && elem != "orientation") {
-                if(elem != key) {
-                    uiData[elem] = false;
-                }
-            }
+            if (elem != "cloud" && elem != "orientation" && elem != key)//排除 云图 和 人车定位
+                uiData[elem] = false;
         }
     }
-    functionMenuGui = new dat.gui.GUI({
-        type: 'icon1'
-    });
+    functionMenuGui = new dat.gui.GUI({type: 'icon1'});
     functionMenuGui.setPosition({"top":0,"left":50});
     var img0 = functionMenuGui.addImageBoolean(uiData, 'warehouseCode').name('仓库编号');
     var img1 = functionMenuGui.addImageBoolean(uiData, 'temperature').name('温度检测');
@@ -262,7 +217,6 @@ function guiinit(){
     var img7 = functionMenuGui.addImageBoolean(uiData, 'video').name('视屏监控');
     var img8 = functionMenuGui.addImageBoolean(uiData, 'cloud').name('温度云图');
     var img9 = functionMenuGui.addImageBoolean(uiData, 'orientation').name('人车定位');
-
     img0.imgUrl('http://47.93.162.148:8081/liangyw/images/button/warehouse_code.png');
     img1.imgUrl('http://47.93.162.148:8081/liangyw/images/button/temperature.png');
     img2.imgUrl('http://47.93.162.148:8081/liangyw/images/button/humidity.png');
@@ -284,8 +238,7 @@ function guiinit(){
                 obj.uiDom = null;
             }
         } else {
-            //互斥
-            un_check("warehouseCode");
+            un_check("warehouseCode");//互斥
             siloHouse.bound.forEach(function(obj) {
                 var data = {
                     number: obj.name
@@ -320,9 +273,8 @@ function guiinit(){
                 obj.removeUI();
                 obj.uiDom = null;
             }
-        } else {
-            //互斥
-            un_check("temperature");
+        } else {            
+            un_check("temperature");//互斥
             siloHouse.bound.forEach(function(obj) {
                 var data = {
                     number: Math.ceil(Math.random()*30+20)+"℃"
@@ -354,8 +306,7 @@ function guiinit(){
                 obj.uiDom = null;
             }
         } else {
-            //互斥
-            un_check("humidity");
+            un_check("humidity");//互斥
             siloHouse.bound.forEach(function(obj) {
                 // 目前都是模拟数据
                 var data = {
@@ -388,8 +339,7 @@ function guiinit(){
                 obj.uiDom = null;
             }
         } else {
-            //互斥
-            un_check("statistics");
+            un_check("statistics");//互斥
             siloHouse.bound.forEach(function(obj) {
                 var data = {
                     number: Math.ceil(Math.random()*20) + "KW/h"
@@ -421,8 +371,7 @@ function guiinit(){
                 obj.uiDom = null;
             }
         } else {
-            //互斥
-            un_check("status");
+            un_check("status");//互斥
             siloHouse.bound.forEach(function(obj) {
                 var data = {
                     number: "正常"
@@ -454,8 +403,7 @@ function guiinit(){
                 obj.uiDom = null;
             }
         } else {
-            //互斥
-            un_check("insect");
+            un_check("insect");//互斥
             siloHouse.bound.forEach(function(obj) {
                 var data = {
                     number: Math.ceil(Math.random()*2) == 1 ? "2头/kg":"4头/kg"
@@ -470,7 +418,6 @@ function guiinit(){
                 });
                 gui.add(data, 'number').name('虫害');
                 obj.addUI(gui.domElement, [0, obj.size[1] , 0 ],[0,3]); // 参数1 ui dom元素 参数2 相对于物体的偏移值 x y z(3D空间坐标) 参数3 ui 的轴心点 x y 百分比 0-1
-                
                 obj.data = data;
                 obj.uiDom = gui;
             });
@@ -479,13 +426,11 @@ function guiinit(){
     //粮食储量
     img6.onChange(function(bool){
         if (bool == true) {
-            //互斥
-            un_check("cerealsReserve");
+            un_check("cerealsReserve");//互斥
             // 隐藏 粮仓 门 窗
             siloHouse.bound.visible = false;
             siloHouse.door.visible = false;
             siloHouse.window.visible = false;
-
             siloHouse.grain.forEach(function(obj) {
                 var data = {
                     number: obj.attr("粮食储量") +"%"
@@ -531,8 +476,7 @@ function guiinit(){
                 obj.uiDom = null;
             }
         } else {
-            //互斥
-            un_check("video");
+            un_check("video");//互斥
             siloHouse.camera.forEach(function(obj) {
                 var data = {
                     name: obj.name
@@ -566,8 +510,7 @@ function guiinit(){
                     // ui位置默认在 右上角                  
                     cameraIframeUI.setPosition({left:app.domElement.offsetWidth - cameraIframeUI.domElement.offsetWidth - 100, top: 100});
                     cameraIframeUI.setZIndex(999999);
-                    //关闭时候把自己干掉 放置 直播的声音还在
-                    cameraIframeUI.bind('close',function() {
+                    cameraIframeUI.bind('close',function() {//关闭时候把自己干掉 放置 直播的声音还在
                         if (cameraIframeUI != null) {
                             cameraIframeUI.destroy();
                         }
@@ -585,8 +528,7 @@ function guiinit(){
         if (!bool){ // 关闭状态 删除
             destroyMeshHeatmap(currentHeatMapMesh);
         } else {
-            // 飞行中不能创建
-            if ( lastDblClickBund != null && app.camera.flying == false) {
+            if ( lastDblClickBund != null && app.camera.flying == false) {// 飞行中不能创建
                 var width =  400;
                 var height = 300;
                 var config = {
@@ -596,9 +538,8 @@ function guiinit(){
                     scale : 1,
                     radius : 25,
                     blur : 50
-               }
-                // 生成数据
-                var data = [];
+                }
+                var data = [];// 生成数据
                 var segX = Math.ceil( width / config.radius );
                 var segY = Math.ceil( height / config.radius );
                 var w = width/segX;
@@ -610,7 +551,6 @@ function guiinit(){
                         data.push( [x,y,RandomNoRepeat(config.minValue,config.maxValue)] );
                     }
                 }
-                //refObj,width,height,data,config{minValue,maxValue,above,scale,radius,blur}
                 currentHeatMapMesh = createMeshHeatmap(lastDblClickBund,width,height,data,config);
             }
         }
@@ -649,21 +589,11 @@ function guiinit(){
     });
 }
 var cameraIframeUI = null;
-// 云图相关
-// var mapCanvas = null;
-var currentHeatMapMesh = null;
-var texture = null;
+var currentHeatMapMesh = null;// 云图相关
 function destroyMeshHeatmap(heatMapMesh) {
     if (heatMapMesh != null)
         app.debug.scene.remove(heatMapMesh);
-    // if (mapCanvas != null)  {
-    //     //document.body.removeChild(mapCanvas);
-    //     delete mapCanvas;
-    //     mapCanvas = null;
-    // }
 }
-
-//refObj,width,height,data,minValue,maxValue,above,scale
 function createMeshHeatmap(refObj,width, height,data,config) {
     if (config === undefined)
         config = {};
@@ -685,20 +615,15 @@ function createMeshHeatmap(refObj,width, height,data,config) {
     mapCanvas.style.position = "absolute";
     mapCanvas.style.left = "0px";
     mapCanvas.style.top = "0px";
-    //mapCanvas.style.backgroundColor = 'rgba(0,0,255,0.2)';
-    //document.body.appendChild(mapCanvas);
     var heat = simpleheat(mapCanvas).data(data).max(config.maxValue).min(config.minValue);
     heat.radius(config.radius,config.blur);
-    heat.draw();
-   
-    texture = new THREE.Texture(mapCanvas);//document.querySelector('.heatmap-canvas')
-    texture.needsUpdate = true;
-    
+    heat.draw();//每次数值更新需要重新 draw 一下
+    var texture = new THREE.Texture(mapCanvas);//document.querySelector('.heatmap-canvas')
+    texture.needsUpdate = true;    
     var basicMat = new THREE.MeshBasicMaterial({
         map: texture,
         side: THREE.DoubleSide
-    });
-    //basicMat.transparent = true;
+    }); 
     var heatMapMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(
             refObj.size[0],
@@ -716,22 +641,17 @@ function createMeshHeatmap(refObj,width, height,data,config) {
     heatMapMesh.rotateY(Math.PI);
     return heatMapMesh;
 }
-//随机生成不重复的
-function RandomNoRepeat(min,max) {
+function RandomNoRepeat(min,max) { //随机生成不重复的
     var originalArray = new Array;
     for (var i=min;i<max;i++){
         originalArray[i]=i+1;
-    } 
+    }
     originalArray.sort(function(){ return 0.5 - Math.random(); }); 
     return originalArray[0];    
 }
-var positionList = [];
-// 人车定位相关
+var positionList = [];// 人车定位相关
 function posinit() {
-    // 目前就一个车
-    var ps = Object.create(positionSystem);
-    //rrrr.waypoints = [[0,0,0],[12,0,12],[100,0,12]];
-    //create_location_car("TestCar01",["L107","L108","L109","L110","L104","L103","L102","L108","L109","L118","L119","L112","L111","L117","L118"],5,["车牌:京A12345","北京优锘科技有限公司","出入库种别:出库","仓房：1号","状态：过磅"]);
+    var ps = Object.create(positionSystem);// 目前就一个车
     ps.SetPath(["L109","L110","L104","L103","L102","L108","L109","L118","L119","L112","L111","L117","L118"]);
     ps.info = {"车牌":"京A12345","公司":"北京优锘科技有限公司","状态":"出库","仓房":"1号","状态":"过磅"};
     ps.loop = true;
@@ -782,11 +702,8 @@ var positionSystem = {
 			y: that.waypoints[that._currentWaypoint][1],
 			z: that.waypoints[that._currentWaypoint][2]
         };
-        // 设置车头方向
-        that._obj.node.lookAt(new THREE.Vector3(to.x,to.y,to.z));
-        // 目前车都是背对 目标点的, 只能沿Y轴旋转180度
-        that._obj.node.rotateY(Math.PI );
-
+        that._obj.node.lookAt(new THREE.Vector3(to.x,to.y,to.z));// 设置车头方向        
+        that._obj.node.rotateY(Math.PI );// 目前车都是背对 目标点的, 只能沿Y轴旋转180度
         that._tween = new TWEEN.Tween(from)
         .to(to, that.time)
         .easing(TWEEN.Easing.Linear.None)
@@ -800,7 +717,6 @@ var positionSystem = {
                 window.setTimeout(function(){that.MoveToPath();},that.delay);
         })
         .start();
-
         that._currentWaypoint++;
         if (that._currentWaypoint > that.waypoints.length-1) {
             that._currentWaypoint = 0;
@@ -825,22 +741,15 @@ var positionSystem = {
 };
 var CameraRotateIng = false;
 function CameraRotateByAxis( angle, axis) {
-    if ( cameraChange3DFlying == true)
-        return;
-    if ( app.camera.flying == true )
-        return;
-    if ( CameraRotateIng == true)
+    if ( cameraChange3DFlying == true || app.camera.flying == true || CameraRotateIng == true)
         return;
     CameraRotateIng = true;
-    //放置ui 抖动 旋转时候 停止 
-    app.debug.picker.enabled = false;
-    /*
-    *camera:相机
-    *angle：旋转角度
-    *segs:分段，即圆弧对应的路径分为几段
-    *time：动画执行的时间
-    */
-    
+    app.debug.picker.enabled = false;//防止ui 抖动 旋转时候 停止 
+    /* camera:相机
+    *  angle：旋转角度
+    *  segs:分段，即圆弧对应的路径分为几段
+    * time：动画执行的时间
+    */    
     var camera = app.debug.camera;
     var segs = Math.abs(angle / 2);
     var time = 10;//毫秒
@@ -848,9 +757,7 @@ function CameraRotateByAxis( angle, axis) {
     var x = camera.position.x;
     var y = camera.position.y;
     var z = camera.position.z;
-
-    //相机向量（指向场景中心）
-    var n = null;
+    var n = null;  //相机向量（指向场景中心）
     if ( axis == null)  {
         axis = "y";
     } else {
@@ -990,77 +897,4 @@ function Change3D ( bool ) {
             cameraChange3DFlying = false;
         }
     });
-}
-// document.oncontextmenu = function (e) {
-//     e.preventDefault();
-//     //return false;
-// };
-
-function initFps() {
-    // var clock = new THREE.Clock();
-
-    // var camControls = new THREE.FirstPersonControls(app.debug.camera);
-    // camControls.lookSpeed = 0.4;
-    // camControls.movementSpeed = 20;
-    // camControls.noFly = true;
-    // camControls.lookVertical = true;
-    // camControls.constrainVertical = true;
-    // camControls.verticalMin = 1.0;
-    // camControls.verticalMax = 2.0;
-    // camControls.lon = -150;
-    // camControls.lat = 120;
-
-    // function render() {
-    //     var delta = clock.getDelta();
-    //     camControls.update(delta);
-    //     // render using requestAnimationFrame
-    //     requestAnimationFrame(render);
-    // }
-    // render();
-
-
-
-    var controls = new THREE.FirstPersonControls( app.debug.camera );
-    controls.lookSpeed = 0.1;
-    controls.movementSpeed = 100;
-    
-    var clock = new THREE.Clock( true );
-    
-    var render = function() {
-      requestAnimationFrame( render );
-    
-      controls.update( clock.getDelta() );
-    };
-    
-    render();
-}
-
-function ccc () {
-        //var prevCamera = camera;
-        camera = app.debug.camera;
-        //camera = new THREE.PerspectiveCamera(...);
-        //camera.position.copy( prevCamera.position );
-        //camera.rotation.copy( prevCamera.rotation );
-    
-        var MODE = { TRACKBALL: 0, FLY: 1 };
-    
-        switch( mode ) {
-    
-            case MODE.FLY:
-    
-                controls = new THREE.TrackballControls( camera );
-    
-                mode = MODE.TRACKBALL;
-    
-                break;
-    
-            case MODE.TRACKBALL:
-    
-                controls = new THREE.OrbitControls( camera );
-    
-                mode = MODE.FLY;
-    
-                break;
-    
-        }
 }
