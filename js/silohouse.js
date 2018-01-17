@@ -226,14 +226,12 @@ function guiinit(){//ui 初始化
     img6.imgUrl('http://47.93.162.148:8081/liangyw/images/button/cereals_reserves.png');
     img7.imgUrl('http://47.93.162.148:8081/liangyw/images/button/video.png');
     img8.imgUrl('http://47.93.162.148:8081/liangyw/images/button/cloud.png');
-    img9.imgUrl('http://47.93.162.148:8081/liangyw/images/button/orientation.png');
-    //仓库编号
-    img0.onChange(function(bool){
+    img9.imgUrl('http://47.93.162.148:8081/liangyw/images/button/orientation.png');    
+    img0.onChange(function(bool){//仓库编号
         if (!bool){ // 关闭状态 删除
             for (var i = 0 ; i < siloHouse.bound.length; i++ ) {// 目前的层级,为了删除需要向上找两级
                 var obj = siloHouse.bound[i];
-                // 删除ui
-                obj.uiDom.destroy();
+                obj.uiDom.destroy();// 删除ui
                 obj.removeUI();
                 obj.uiDom = null;
             }
@@ -263,13 +261,11 @@ function guiinit(){//ui 初始化
             });
         }
     });
-    //温度
-    img1.onChange(function(bool) {
+    img1.onChange(function(bool) {//温度
         if (!bool){ // 关闭状态 删除
             for (var i = 0 ; i < siloHouse.bound.length; i++ ) {// 目前的层级,为了删除需要向上找两级
                 var obj = siloHouse.bound[i];
-                // 删除ui
-                obj.uiDom.destroy();
+                obj.uiDom.destroy();// 删除ui
                 obj.removeUI();
                 obj.uiDom = null;
             }
@@ -289,14 +285,12 @@ function guiinit(){//ui 初始化
                 });
                 gui.add(data, 'number').name('温度');
                 obj.addUI(gui.domElement, [0, obj.size[1] , 0 ],[0,3]); // 参数1 ui dom元素 参数2 相对于物体的偏移值 x y z(3D空间坐标) 参数3 ui 的轴心点 x y 百分比 0-1
-                
                 obj.data = data;
                 obj.uiDom = gui;
             });
         }
     });
-    //湿度检测
-    img2.onChange(function(bool) {
+    img2.onChange(function(bool) {//湿度检测
         if (!bool){ // 关闭状态 删除
             for (var i = 0 ; i < siloHouse.bound.length; i++ ) {// 目前的层级,为了删除需要向上找两级
                 var obj = siloHouse.bound[i];
@@ -307,9 +301,8 @@ function guiinit(){//ui 初始化
             }
         } else {
             un_check("humidity");//互斥
-            siloHouse.bound.forEach(function(obj) {
-                // 目前都是模拟数据
-                var data = {
+            siloHouse.bound.forEach(function(obj) {                
+                var data = {// 目前都是模拟数据
                     number: Math.ceil(Math.random()*30+20)+"%"
                 };
                 var gui = new dat.gui.GUI({
@@ -322,19 +315,16 @@ function guiinit(){//ui 初始化
                 });
                 gui.add(data, 'number').name('湿度');
                 obj.addUI(gui.domElement, [0, obj.size[1] , 0 ],[0,3]); // 参数1 ui dom元素 参数2 相对于物体的偏移值 x y z(3D空间坐标) 参数3 ui 的轴心点 x y 百分比 0-1
-                
                 obj.data = data;
                 obj.uiDom = gui;
             });
         }
     });
-    //能耗统计
-    img3.onChange(function(bool) {
+    img3.onChange(function(bool) {//能耗统计
         if (!bool){ // 关闭状态 删除
             for (var i = 0 ; i < siloHouse.bound.length; i++ ) {// 目前的层级,为了删除需要向上找两级
                 var obj = siloHouse.bound[i];
-                // 删除ui
-                obj.uiDom.destroy();
+                obj.uiDom.destroy();// 删除ui
                 obj.removeUI();
                 obj.uiDom = null;
             }
@@ -354,19 +344,16 @@ function guiinit(){//ui 初始化
                 });
                 gui.add(data, 'number').name('能耗');
                 obj.addUI(gui.domElement, [0, obj.size[1] , 0 ],[0,3]); // 参数1 ui dom元素 参数2 相对于物体的偏移值 x y z(3D空间坐标) 参数3 ui 的轴心点 x y 百分比 0-1
-                
                 obj.data = data;
                 obj.uiDom = gui;
             });
         }
-    });
-    //保粮状态
-    img4.onChange(function(bool) {
+    });    
+    img4.onChange(function(bool) {//保粮状态
         if (!bool){ // 关闭状态 删除
             for (var i = 0 ; i < siloHouse.bound.length; i++ ) {// 目前的层级,为了删除需要向上找两级
                 var obj = siloHouse.bound[i];
-                // 删除ui
-                obj.uiDom.destroy();
+                obj.uiDom.destroy();// 删除ui
                 obj.removeUI();
                 obj.uiDom = null;
             }
@@ -386,19 +373,16 @@ function guiinit(){//ui 初始化
                 });
                 gui.add(data, 'number').name('保粮');
                 obj.addUI(gui.domElement, [0, obj.size[1] , 0 ],[0,3]); // 参数1 ui dom元素 参数2 相对于物体的偏移值 x y z(3D空间坐标) 参数3 ui 的轴心点 x y 百分比 0-1
-                
                 obj.data = data;
                 obj.uiDom = gui;
             });
         }
     });
-    //虫害
-    img5.onChange(function(bool) {
+    img5.onChange(function(bool) {//虫害
         if (!bool){ // 关闭状态 删除
             for (var i = 0 ; i < siloHouse.bound.length; i++ ) {// 目前的层级,为了删除需要向上找两级
-                var obj = siloHouse.bound[i];
-                // 删除ui
-                obj.uiDom.destroy();
+                var obj = siloHouse.bound[i];                
+                obj.uiDom.destroy();// 删除ui
                 obj.removeUI();
                 obj.uiDom = null;
             }
@@ -423,8 +407,7 @@ function guiinit(){//ui 初始化
             });
         }
     });
-    //粮食储量
-    img6.onChange(function(bool){
+    img6.onChange(function(bool){//粮食储量
         if (bool == true) {
             un_check("cerealsReserve");//互斥
             // 隐藏 粮仓 门 窗
@@ -446,15 +429,13 @@ function guiinit(){//ui 初始化
                 });
                 gui.add(data, 'number').name('储量');
                 obj.addUI(gui.domElement, [0, obj.size[1] , 0 ],[0,1]); // 参数1 ui dom元素 参数2 相对于物体的偏移值 x y z(3D空间坐标) 参数3 ui 的轴心点 x y 百分比 0-1
-                
                 obj.data = data;
                 obj.uiDom = gui;
             });
         } else {
             for (var i = 0 ; i < siloHouse.grain.length; i++ ) {// 目前的层级,为了删除需要向上找两级
                 var obj = siloHouse.grain[i];
-                // 删除ui
-                obj.uiDom.destroy();
+                obj.uiDom.destroy();// 删除ui
                 obj.removeUI();
                 obj.uiDom = null;
                 obj.data = null;
@@ -465,13 +446,11 @@ function guiinit(){//ui 初始化
             siloHouse.window.visible = true;
         }
     });
-    //视屏监控
-    img7.onChange(function(bool) {
+    img7.onChange(function(bool) {//视屏监控
         if (!bool){ // 关闭状态 删除
             for (var i = 0 ; i < siloHouse.camera.length; i++ ) {// 目前的层级,为了删除需要向上找两级
-                var obj = siloHouse.camera[i];
-                // 删除ui
-                obj.uiDom.destroy();
+                var obj = siloHouse.camera[i];                
+                obj.uiDom.destroy();// 删除ui
                 obj.removeUI();
                 obj.uiDom = null;
             }
@@ -489,8 +468,7 @@ function guiinit(){//ui 初始化
                     opacity: 0.8,
                 });
                 var thatObj = obj;
-                //注册ui的 点击事件, 点击出视频
-                gui.bind('click', function() {
+                gui.bind('click', function() { //注册ui的 点击事件, 点击出视频
                     if (cameraIframeUI != null) {
                         cameraIframeUI.destroy();
                     }
@@ -505,10 +483,8 @@ function guiinit(){//ui 初始化
                         hasTitle: true,
                         domWidth:"450px"
                     });
-                    // 设置url
                     cameraIframeUI.addIframe(ui2data, 'iframe').name("　").iframeUrl("http://shuidi.huajiao.com/pc/player_autosize.html?sn=36061726627&channel=hide").setHeight('300px');
-                    // ui位置默认在 右上角                  
-                    cameraIframeUI.setPosition({left:app.domElement.offsetWidth - cameraIframeUI.domElement.offsetWidth - 100, top: 100});
+                    cameraIframeUI.setPosition({left:app.domElement.offsetWidth - cameraIframeUI.domElement.offsetWidth - 100, top: 100});// ui位置默认在 右上角   
                     cameraIframeUI.setZIndex(999999);
                     cameraIframeUI.bind('close',function() {//关闭时候把自己干掉 放置 直播的声音还在
                         if (cameraIframeUI != null) {
@@ -517,14 +493,12 @@ function guiinit(){//ui 初始化
                     }); 
                 });
                 gui.add(data, 'name').name('视频');
-                // 取物体的size 顶在物体的头顶
                 obj.addUI(gui.domElement,[0,obj.size[1],0],[0,3]);//ui左下角对齐物体
                 obj.uiDom = gui;
             });
         }
     });
-    //云图
-    img8.onChange(function(bool) {
+    img8.onChange(function(bool) {//云图
         if (!bool){ // 关闭状态 删除
             destroyMeshHeatmap(currentHeatMapMesh);
         } else {
@@ -555,13 +529,11 @@ function guiinit(){//ui 初始化
             }
         }
     });
-    //人车定位 ui 显示隐藏
-    img9.onChange(function(bool){
+    img9.onChange(function(bool){//人车定位 ui 显示隐藏
         if (bool) {
             positionList.forEach(function(posSys) {
                 var obj = posSys._obj;
                 var gui = new dat.gui.GUI({
-                    //type: 'signboard0',
                     type: 'signboard2',
                     cornerType: 's2c3',
                     name: '车',
@@ -578,9 +550,8 @@ function guiinit(){//ui 初始化
             });
         } else {
             for (var i = 0 ; i < positionList.length; i++ ) {
-                var obj = positionList[i]._obj;
-                // 删除ui
-                obj.uiDom.destroy();
+                var obj = positionList[i]._obj;                
+                obj.uiDom.destroy();// 删除ui
                 obj.removeUI();
                 obj.uiDom = null;
             }
@@ -658,8 +629,7 @@ function posinit() {
     ps.start();
     positionList.push(ps);
 }
-// 人车定位  //app.query("#L118")  //Object.create(positionSystem);
-var positionSystem = {
+var positionSystem = {// 人车定位  //app.query("#L118")  //Object.create(positionSystem);
     waypoints:[],
     time:5000,
     delay:0,
@@ -745,24 +715,17 @@ function CameraRotateByAxis( angle, axis) {
         return;
     CameraRotateIng = true;
     app.debug.picker.enabled = false;//防止ui 抖动 旋转时候 停止 
-    /* camera:相机
-    *  angle：旋转角度
-    *  segs:分段，即圆弧对应的路径分为几段
-    * time：动画执行的时间
-    */    
     var camera = app.debug.camera;
-    var segs = Math.abs(angle / 2);
-    var time = 10;//毫秒
-
+    var segs = Math.abs(angle / 2);//segs:分段，即圆弧对应的路径分为几段 angle：旋转角度
+    var time = 10;//毫秒 动画执行的时间
     var x = camera.position.x;
     var y = camera.position.y;
     var z = camera.position.z;
     var n = null;  //相机向量（指向场景中心）
-    if ( axis == null)  {
+    if ( axis == null)
         axis = "y";
-    } else {
+    else
         axis  = axis.toLocaleLowerCase();
-    }    
     switch(axis) {
         case "x":
             n = (new THREE.Vector3(1, 0, 0)).normalize();
@@ -776,25 +739,20 @@ function CameraRotateByAxis( angle, axis) {
     }
     var endPosArray = new Array();
     var perAngle = angle / segs;
-
     for (var i = 1 ; i <= segs ; i++) {
         var sinDelta = Math.sin(THREE.Math.degToRad(i * perAngle));
         var cosDelta = Math.cos(THREE.Math.degToRad(i * perAngle));
-
         var tempX = x * (n.x * n.x * (1 - cosDelta) + cosDelta) + y * (n.x * n.y * (1 - cosDelta) - n.z * sinDelta) + z * (n.x * n.z * (1 - cosDelta) + n.y * sinDelta);
         var tempY = x * (n.x * n.y * (1 - cosDelta) + n.z * sinDelta) + y * (n.y * n.y * (1 - cosDelta) + cosDelta) + z * (n.y * n.z * (1 - cosDelta) - n.x * sinDelta);
         var tempZ = x * (n.x * n.z * (1 - cosDelta) - n.y * sinDelta) + y * (n.y * n.z * (1 - cosDelta) + n.x * sinDelta) + z * (n.z * n.z * (1 - cosDelta) + cosDelta);
-        
         var endPos = [tempX,tempY,tempZ];
         endPosArray.push(endPos);
     }
-    // 关闭orbit ,记录原有状态
-    var savedEnabled = true;// app.camera.orbit.enabled;
     app.camera.orbit.enabled = false;
     var flag = 0;
     var id = setInterval(function () {
         if (flag == segs) {
-            app.camera.orbit.enabled = savedEnabled;
+            app.camera.orbit.enabled = true;
             CameraRotateIng = false;
             app.debug.picker.enabled = true;
             clearInterval(id);
@@ -839,7 +797,6 @@ function MenuItemClick(elem,item) {
         functionMenuGui.show(functionMenuGuiState);
     }
 }
-
 var perspective;
 function switchCamera() {
     var camera = app.debug.camera;
@@ -861,8 +818,7 @@ function switchCamera() {
         perspective = "Perspective";
     }
     app.debug.camera = camera;
-};
- 
+}; 
 function _clamp ( v, minv, maxv ) {
     return ( v < minv ) ? minv : ( ( v > maxv ) ? maxv : v );    
 }
@@ -870,10 +826,8 @@ var cameraChange3D = true;
 var cameraChange3DFlying = false;
 function Change3D ( bool ) {
     cameraChange3D = bool;
-    // 防止旋转时候中断的bug
-    app.camera.orbit.enabled = true;    
-    // 获取场景的大小
-    var box = new THREE.Box3().setFromObject(app.debug.scene);
+    app.camera.orbit.enabled = true;// 防止旋转时候中断的bug
+    var box = new THREE.Box3().setFromObject(app.debug.scene); // 获取场景的大小
     var offsetFactor = [0,1,0];
     var radius = box.getSize().length();//lenght 返回的是对角线长    
     var center = box.getCenter();
