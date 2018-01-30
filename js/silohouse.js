@@ -10,6 +10,12 @@ window.onload = function() {
             appinit();
             guiinit();
             initsimdata();
+            // 更新
+            app.onupdate = function() {
+                if (startFps) {
+                    fpsControls.update(app.deltaTime);
+                }
+            }
         }
     });
 }
@@ -766,6 +772,8 @@ function CameraRotateByAxis( angle, axis) {
 }
 var functionMenuGuiState = true;
 var htmlElem2d3d = null;
+var startFps = false;
+var fpsControls = null;
 // 处理左侧菜单
 function MenuItemClick(elem,item) {
     if (item == "cam") {
@@ -795,7 +803,28 @@ function MenuItemClick(elem,item) {
     } else if (item == "fun") {
         functionMenuGuiState = !functionMenuGuiState;
         functionMenuGui.show(functionMenuGuiState);
+    } else if (item == "fps") {
+        startFps = !startFps;
+        changeFPS();
+        if (elem.children[1].innerText == "行走") {
+            elem.children[1].innerText = "恢复"
+        } else {
+            elem.children[1].innerText = "行走"
+        }
     }
+}
+function changeFPS() {
+    app.camera.orbit.enabled  = !startFps;
+    
+    if (fpsControls == null) {
+        fpsControls = new THREE.FirstPersonControls(app.camera.camera);
+        //fpsControls.lookSpeed = 0.15;
+        //fpsControls.movementSpeed = 10;
+        fpsControls.originPos = [0,18,0];
+        fpsControls.surfaceFloor = app.outdoors.floorNode;
+    }
+    fpsControls.enabled = startFps;
+    fpsControls.resetToOrigin();
 }
 var perspective;
 function switchCamera() {
