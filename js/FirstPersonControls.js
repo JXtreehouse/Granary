@@ -4,16 +4,16 @@
  * @author paulirish / http://paulirish.com/
  */
 
-THREE.FirstPersonControls = function ( object, domElement ) {
+THREE.FirstPersonControls = function (object, domElement) {
 
 	this.object = object;
-	this.target = new THREE.Vector3( 0, 0, 0 );
+	this.target = new THREE.Vector3(0, 0, 0);
 
-	this.domElement = ( domElement !== undefined ) ? domElement : document;
+	this.domElement = (domElement !== undefined) ? domElement : document;
 
 	this.enabled = true;
 
-	this.movementSpeed = 4.0;
+	this.movementSpeed = 5.0;
 	this.lookSpeed = 0.1;
 
 	this.lookVertical = true;
@@ -48,9 +48,9 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 	this.kneeDeep = 0.4;
 	this.timeLeft = 6;//循环计时
 	this.raycaster = new THREE.Raycaster();
-	this.originPos = [-2, 18.7, 25 ];//出生点
+	this.originPos = [-2, 18.7, 25];//出生点
 	this.dropDistance = -123;//下降到达多少距离后重置到重生点
-	this.raycaster.ray.direction.set( 0, -1, 0 );//向地面
+	this.raycaster.ray.direction.set(0, -1, 0);//向地面
 	this.initEnabled = true;//初始化时候的摄影机操作
 	// jg add end
 	this.moveForward = false;
@@ -63,13 +63,17 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 	this.viewHalfX = 0;
 	this.viewHalfY = 0;
 
-	if ( this.domElement !== document ) {
-		this.domElement.setAttribute( 'tabindex', - 1 );
+	this.accelerate = 5;
+	this.peopleHeight = 1.7;// 人高
+	this.smooth = 0.1;
+
+	if (this.domElement !== document) {
+		this.domElement.setAttribute('tabindex', - 1);
 	}
 
 	this.handleResize = function () {
 
-		if ( this.domElement === document ) {
+		if (this.domElement === document) {
 
 			this.viewHalfX = window.innerWidth / 2;
 			this.viewHalfY = window.innerHeight / 2;
@@ -83,9 +87,9 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	};
 
-	this.onMouseDown = function ( event ) {
+	this.onMouseDown = function (event) {
 
-		if ( this.domElement !== document ) {
+		if (this.domElement !== document) {
 
 			this.domElement.focus();
 
@@ -94,15 +98,15 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 		event.preventDefault();
 		event.stopPropagation();
 
-		if ( this.activeLook ) {
+		if (this.activeLook) {
 
-			switch ( event.button ) {
+			switch (event.button) {
 
 				//case 0: this.moveForward = true; break;
 				//case 2: this.moveBackward = true; break;
 				//jg add
 				case 2: this.mouseRightDown = true; break;
-				
+
 
 			}
 
@@ -112,14 +116,14 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	};
 
-	this.onMouseUp = function ( event ) {
+	this.onMouseUp = function (event) {
 
 		event.preventDefault();
 		event.stopPropagation();
 
-		if ( this.activeLook ) {
+		if (this.activeLook) {
 
-			switch ( event.button ) {
+			switch (event.button) {
 
 				//case 0: this.moveForward = false; break;
 				//case 2: this.moveBackward = false; break;
@@ -133,9 +137,9 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	};
 
-	this.onMouseMove = function ( event ) {
+	this.onMouseMove = function (event) {
 
-		if ( this.domElement === document ) {
+		if (this.domElement === document) {
 
 			this.mouseX = event.pageX - this.viewHalfX;
 			this.mouseY = event.pageY - this.viewHalfY;
@@ -149,11 +153,11 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	};
 
-	this.onKeyDown = function ( event ) {
+	this.onKeyDown = function (event) {
 
 		//event.preventDefault();
 
-		switch ( event.keyCode ) {
+		switch (event.keyCode) {
 
 			//case 32: /*space*/ this.moveJump = true; break;
 			case 16: /*shift*/ this.speedUp = true; break;
@@ -177,9 +181,9 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	};
 
-	this.onKeyUp = function ( event ) {
+	this.onKeyUp = function (event) {
 
-		switch ( event.keyCode ) {
+		switch (event.keyCode) {
 
 			case 32: /*space*/ this.moveJump = true; break;
 			case 16: /*shift*/ this.speedUp = false; break;
@@ -206,165 +210,169 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 	this.resetToOrigin = function () {
 		this.initEnabled = true;
 	}
-	
-	this.update = function( delta ) {
 
-		if ( this.enabled === false )			
-			return;		
+	this.update = function (delta) {
+		if (this.enabled === false)
+			return;
 
-		if ( this.heightSpeed ) {
+		if (this.surfaceFloor == null) 
+			return;
 
-			var y = THREE.Math.clamp( this.object.position.y, this.heightMin, this.heightMax );
+		if (this.heightSpeed) {
+			var y = THREE.Math.clamp(this.object.position.y, this.heightMin, this.heightMax);
 			var heightDelta = y - this.heightMin;
-
-			this.autoSpeedFactor = delta * ( heightDelta * this.heightCoef );
-
+			this.autoSpeedFactor = delta * (heightDelta * this.heightCoef);
 		} else {
-
 			this.autoSpeedFactor = 0.0;
-
 		}
 
 		// jg add
 		// 右键时候 在跟随
-		if ( this.mouseRightDown || this.initEnabled) {
-
-			if ( this.initEnabled ) {//初始化到出生点
-				this.object.position.set( this.originPos[0],this.originPos[1],this.originPos[2] );
+		if (this.mouseRightDown || this.initEnabled) {
+			if (this.initEnabled) {//初始化到出生点
+				this.object.position.set(this.originPos[0], this.originPos[1], this.originPos[2]);
 				this.initEnabled = false;
 			}
 
 			var actualLookSpeed = delta * this.lookSpeed;
-
-			if ( ! this.activeLook ) {
-
+			if (!this.activeLook) {
 				actualLookSpeed = 0;
-
 			}
+
 			var verticalLookRatio = 1;
-
-			if ( this.constrainVertical ) {
-
-				verticalLookRatio = Math.PI / ( this.verticalMax - this.verticalMin );
-
+			if (this.constrainVertical) {
+				verticalLookRatio = Math.PI / (this.verticalMax - this.verticalMin);
 			}
 
 			this.lon += this.mouseX * actualLookSpeed;
-			if ( this.lookVertical ) this.lat -= this.mouseY * actualLookSpeed * verticalLookRatio;
+			if (this.lookVertical) this.lat -= this.mouseY * actualLookSpeed * verticalLookRatio;
 
-			this.lat = Math.max( - 85, Math.min( 85, this.lat ) );
-			this.phi = THREE.Math.degToRad( 90 - this.lat );
+			this.lat = Math.max(- 85, Math.min(85, this.lat));
+			this.phi = THREE.Math.degToRad(90 - this.lat);
 
-			this.theta = THREE.Math.degToRad( this.lon );
+			this.theta = THREE.Math.degToRad(this.lon);
 
-			if ( this.constrainVertical ) {
-
-				this.phi = THREE.Math.mapLinear( this.phi, 0, Math.PI, this.verticalMin, this.verticalMax );
-
+			if (this.constrainVertical) {
+				this.phi = THREE.Math.mapLinear(this.phi, 0, Math.PI, this.verticalMin, this.verticalMax);
 			}
 		}
-		
-		if( this.object.position.y < this.dropDistance ) {// 如果掉入地面 重置到地面上
-			this.object.position.set( this.originPos[0],this.originPos[1],this.originPos[2] );
+
+		if (this.object.position.y < this.dropDistance) {// 如果掉入地面 重置到地面上
+			this.object.position.set(this.originPos[0], this.originPos[1], this.originPos[2]);
 		}
 		// 控制行走
-		// 地形边缘检测先不做
-		// 行走碰撞检查,先不做了
 		var actualMoveSpeed = 1;
 
-		if ( this.speedUp ) {//按住shift 加速
-			actualMoveSpeed = delta * this.movementSpeed * 1.5;
+		if (this.speedUp) {//按住shift 加速
+			actualMoveSpeed = delta * this.movementSpeed * this.accelerate;
 		} else {
 			actualMoveSpeed = delta * this.movementSpeed;
 		}
-		
-		this.raycaster.ray.origin.copy( this.object.position );
-		if ( this.moveForward || ( this.autoForward && ! this.moveBackward ) ) this.object.translateZ( - ( actualMoveSpeed + this.autoSpeedFactor ) );
-		if ( this.moveBackward ) this.object.translateZ( actualMoveSpeed );
 
-		if ( this.moveLeft ) this.object.translateX( - actualMoveSpeed );
-		if ( this.moveRight ) this.object.translateX( actualMoveSpeed );
+		this.raycaster.ray.origin.copy(this.object.position);
 
-		if (this.surfaceFloor != null) {
-			this.timeLeft += delta;		
-			var dt = 0.001;
-			while( this.timeLeft >= dt ) {//当前帧检测,就是出现卡顿跳帧,然后人掉下去
-				this.raycaster.ray.origin.copy( this.object.position );
-				this.raycaster.ray.origin.y += this.birdsEye;
+		if (this.moveForward || (this.autoForward && !this.moveBackward)) this.object.translateZ(- (actualMoveSpeed + this.autoSpeedFactor));
+		if (this.moveBackward) this.object.translateZ(actualMoveSpeed);
 
-				var isDrop = true;
-				var hits = this.raycaster.intersectObject ( this.surfaceFloor, true );
-				if( ( hits.length > 0 ) && ( hits[0].face.normal.y > 0 ) ) {
-					var actualHeight = hits[0].distance - this.birdsEye;
-					// 碰到地面
-					if( ( this.object.position.y <= 2 ) && ( Math.abs( actualHeight ) < this.kneeDeep ) ) {
-						this.object.position.set( this.object.position.x, this.object.position.y - actualHeight, this.object.position.z );
-						isDrop = false;
-					}
-				}
-				if (isDrop) {// 模拟重力
-					this.object.position.set( this.object.position.x,this.object.position.y - this.gravity, this.object.position.z );
-				}
-				this.timeLeft -= dt;
-			}
+		if (this.moveLeft) this.object.translateX(- actualMoveSpeed);
+		if (this.moveRight) this.object.translateX(actualMoveSpeed);
+
+		this.raycaster.ray.origin.copy(this.object.position);
+		this.raycaster.ray.origin.y += this.birdsEye;
+		var hits = this.raycaster.intersectObject(this.surfaceFloor, true);
+
+		if (hits.length < 1) {  //边缘检测
+			if (this.moveForward || (this.autoForward && !this.moveBackward)) this.object.translateZ((actualMoveSpeed + this.autoSpeedFactor) + this.smooth);
+			if (this.moveBackward) this.object.translateZ(-actualMoveSpeed - this.smooth);
+	
+			if (this.moveLeft) this.object.translateX(actualMoveSpeed + this.smooth);
+			if (this.moveRight) this.object.translateX(-actualMoveSpeed - this.smooth);
+			return;
 		}
+
+		// 控制高度
+		var actualHeight = hits[0].distance - this.birdsEye;
+		this.object.position.y = this.peopleHeight + this.object.position.y - actualHeight;
+		//if ( this.object.position.y - actualHeight > 0.01) this.object.position.y +=  this.object.position.y - actualHeight;
+		// if (this.surfaceFloor != null) {
+		// 	this.timeLeft += delta;
+		// 	var dt = 0.001;
+		// 	while (this.timeLeft >= dt) {//当前帧检测,就是出现卡顿跳帧,然后人掉下去
+		// 		this.raycaster.ray.origin.copy(this.object.position);
+		// 		this.raycaster.ray.origin.y += this.birdsEye;
+
+		// 		var isDrop = true;
+		// 		var hits = this.raycaster.intersectObject(this.surfaceFloor, true);
+		// 		if ((hits.length > 0) && (hits[0].face.normal.y > 0)) {
+		// 			var actualHeight = hits[0].distance - this.birdsEye;
+		// 			// 碰到地面
+		// 			if ((this.object.position.y <= 2) && (Math.abs(actualHeight) < this.kneeDeep)) {
+		// 				this.object.position.set(this.object.position.x, this.object.position.y - actualHeight, this.object.position.z);
+		// 				isDrop = false;
+		// 			}
+		// 		}
+		// 		if (isDrop) {// 模拟重力
+		// 			this.object.position.set(this.object.position.x, this.object.position.y - this.gravity, this.object.position.z);
+		// 		}
+		// 		this.timeLeft -= dt;
+		// 	}
+		// }
 		// if ( this.moveUp ) this.object.translateY( actualMoveSpeed );
 		// if ( this.moveDown ) this.object.translateY( - actualMoveSpeed );
-		this.object.position.set( this.object.position.x, this.object.position.y + 1.7, this.object.position.z );
-		if( this.moveJump) {//跳
-			this.object.position.set( this.object.position.x, this.object.position.y + 5, this.object.position.z );
+
+		//this.object.position.set(this.object.position.x, this.object.position.y + 1.7, this.object.position.z);
+
+		if (this.moveJump) {//跳
+			this.object.position.set(this.object.position.x, this.object.position.y + 5, this.object.position.z);
 			this.moveJump = false;
 		}
 		// jg add end
-		var targetPosition = this.target,position = this.object.position;
+		var targetPosition = this.target, position = this.object.position;
 
-		targetPosition.x = position.x + 100 * Math.sin( this.phi ) * Math.cos( this.theta );
-		targetPosition.y = position.y + 100 * Math.cos( this.phi );
-		targetPosition.z = position.z + 100 * Math.sin( this.phi ) * Math.sin( this.theta );
+		targetPosition.x = position.x + 100 * Math.sin(this.phi) * Math.cos(this.theta);
+		targetPosition.y = position.y + 100 * Math.cos(this.phi);
+		targetPosition.z = position.z + 100 * Math.sin(this.phi) * Math.sin(this.theta);
 
-		this.object.lookAt( targetPosition );
-
-		// 离地下1.7米 模拟人的视角
-		
+		this.object.lookAt(targetPosition);
 	};
 
-	function contextmenu( event ) {
+	function contextmenu(event) {
 
 		event.preventDefault();
 
 	}
 
-	this.dispose = function() {
+	this.dispose = function () {
 
-		this.domElement.removeEventListener( 'contextmenu', contextmenu, false );
-		this.domElement.removeEventListener( 'mousedown', _onMouseDown, false );
-		this.domElement.removeEventListener( 'mousemove', _onMouseMove, false );
-		this.domElement.removeEventListener( 'mouseup', _onMouseUp, false );
+		this.domElement.removeEventListener('contextmenu', contextmenu, false);
+		this.domElement.removeEventListener('mousedown', _onMouseDown, false);
+		this.domElement.removeEventListener('mousemove', _onMouseMove, false);
+		this.domElement.removeEventListener('mouseup', _onMouseUp, false);
 
-		window.removeEventListener( 'keydown', _onKeyDown, false );
-		window.removeEventListener( 'keyup', _onKeyUp, false );
+		window.removeEventListener('keydown', _onKeyDown, false);
+		window.removeEventListener('keyup', _onKeyUp, false);
 
 	};
 
-	var _onMouseMove = bind( this, this.onMouseMove );
-	var _onMouseDown = bind( this, this.onMouseDown );
-	var _onMouseUp = bind( this, this.onMouseUp );
-	var _onKeyDown = bind( this, this.onKeyDown );
-	var _onKeyUp = bind( this, this.onKeyUp );
+	var _onMouseMove = bind(this, this.onMouseMove);
+	var _onMouseDown = bind(this, this.onMouseDown);
+	var _onMouseUp = bind(this, this.onMouseUp);
+	var _onKeyDown = bind(this, this.onKeyDown);
+	var _onKeyUp = bind(this, this.onKeyUp);
 
-	this.domElement.addEventListener( 'contextmenu', contextmenu, false );
-	this.domElement.addEventListener( 'mousemove', _onMouseMove, false );
-	this.domElement.addEventListener( 'mousedown', _onMouseDown, false );
-	this.domElement.addEventListener( 'mouseup', _onMouseUp, false );
+	this.domElement.addEventListener('contextmenu', contextmenu, false);
+	this.domElement.addEventListener('mousemove', _onMouseMove, false);
+	this.domElement.addEventListener('mousedown', _onMouseDown, false);
+	this.domElement.addEventListener('mouseup', _onMouseUp, false);
 
-	window.addEventListener( 'keydown', _onKeyDown, false );
-	window.addEventListener( 'keyup', _onKeyUp, false );
+	window.addEventListener('keydown', _onKeyDown, false);
+	window.addEventListener('keyup', _onKeyUp, false);
 
-	function bind( scope, fn ) {
+	function bind(scope, fn) {
 
 		return function () {
 
-			fn.apply( scope, arguments );
+			fn.apply(scope, arguments);
 
 		};
 

@@ -10,11 +10,13 @@ window.onload = function() {
             appinit();
             guiinit();
             initsimdata();
+            initCompass();//初始化指南针
             // 更新
             app.onupdate = function() {
                 if (startFps) {
                     fpsControls.update(app.deltaTime);
                 }
+                compassUpdate();
             }
         }
     });
@@ -38,6 +40,11 @@ function appinit() {
         evt.returnValue = false;
         return false;
     };
+    window.addEventListener('resize', function () {
+        compassResize();
+        if (fpsControls != null)
+            fpsControls.handleResize();
+    });
 }
 var mousedownPos = new THREE.Vector2();
 function click_all_callback_down(event) {
@@ -768,6 +775,7 @@ function CameraRotateByAxis( angle, axis) {
             camera.updateMatrix();
             flag++;
         }
+        app.camera.orbit.update();//利用orbit摄影机的lookTarget能力,围绕中心转,所以需要手动掉 update
     }, time / segs);
 }
 var functionMenuGuiState = true;
@@ -880,4 +888,29 @@ function Change3D ( bool ) {
             cameraChange3DFlying = false;
         }
     });
+}
+// 指南针
+var compassSprite = null;
+function initCompass() {
+    var spriteMaterial = new THREE.SpriteMaterial({
+        map: THREE.ImageUtils.loadTexture('images/compass.png'),
+        opacity: 0.8,
+        color: 0x008800,
+        transparent: true
+    });
+    compassSprite = new THREE.Sprite(spriteMaterial);
+    compassSprite.scale.set(50, 50, 1);
+    compassResize();
+    app.debug.sceneOrtho.add(compassSprite);
+}
+function compassResize() {
+    compassSprite.position.set(app.domElement.offsetWidth/2 - 50, -(app.domElement.offsetHeight/2 - 50), -10);
+}
+function compassUpdate() {
+    if( compassSprite != null ) {
+        //根据当前的位置计算与z轴负方向的夹角，即为正北方方向。如果使用camera的rotation.y你会发现得出的弧度制范围是-90到90，指南针就不能旋转360度了。
+        var dir = new THREE.Vector3(-app.camera.camera.position.x, 0, -app.camera.camera.position.z).normalize();
+        var theta = Math.atan2(-dir.x, -dir.z);
+        compassSprite.material.rotation = theta;
+    }
 }
