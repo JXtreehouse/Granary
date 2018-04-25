@@ -35,7 +35,7 @@ ul, li {
                 .label {
                     text-align: center;
                     color: #fff;
-                } 
+                }
                 &:hover {
                     .label {
                         color: #1296db;
@@ -49,8 +49,9 @@ ul, li {
             .li {
                 &:nth-child(1) {
                     .img {
-                        background: url('../images/granary1.png') no-repeat center;
-                        background-size: contain;
+                        background: url('../images/logo.png') no-repeat;
+                        background-size: 56px 24px;
+                        background-position: 0, 0;
                     }
                 }
                 &:nth-child(2) {
@@ -75,12 +76,12 @@ ul, li {
                     }
                 }
                 &:hover {
-                    &:nth-child(1) {
-                        .img {
-                            background: url('../images/granary2.png') no-repeat center;
-                            background-size: contain;
-                        }
-                    }
+                    // &:nth-child(1) {
+                    //     .img {
+                    //         background: url('../images/granary2.png') no-repeat center;
+                    //         background-size: contain;
+                    //     }
+                    // }
                     &:nth-child(2) {
                         .img {
                             background:  url('../images/ability2.png') no-repeat center;
@@ -205,6 +206,17 @@ ul, li {
                         height: 24px*@percent-screen-s;
                         margin: 13px*@percent-screen-s;
                     }  
+                }
+            }
+            .ul-top {
+                .li {
+                    &:nth-child(1) {
+                        .img {
+                            background: url('../images/logo.png') no-repeat;
+                            background-size: 56px*@percent-screen-s 24px*@percent-screen-s;
+                            background-position: 0, 0;
+                        }
+                    }
                 }
             }
             .ul-bottom {

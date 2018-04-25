@@ -2,20 +2,17 @@
 <html>
 	<head>
 		<meta charset=utf-8>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Thing 3D Sample</title>
 		<style> 
 			body { margin: 0; overflow: hidden; } 
 			canvas { width: 100%; height: 100% }
 		</style>
 		<link rel="stylesheet" href="css/menu.css">
-		<link rel="stylesheet" type="text/css" href="https://speech.uinnova.com/static/common/css/forkonme.css">
-		<!-- <script src="../../dist/thing3d.js"></script> -->
-		<!-- <script src="../../dist/thing3d.min.js"></script> -->
-		<script src="https://speech.uinnova.com/static/release/thing3d.min.js"></script>
-		<script src="http://47.93.162.148:8081/release/dat.gui.min.js"></script>
-		<script src="js/simpleheat.js"></script>		
-		<script src="js/FirstPersonControls.js"></script>
-		<script src="js/silohouse.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://speech.uinnova.com/static/common/css/forkonme.css">	
+		<script type="text/javascript" src="https://speech.uinnova.com/static/release/thing.min.js"></script>
+		<script type="text/javascript" src="https://speech.uinnova.com/static/release/thing.widget.min.js"></script>
+		<script type="text/javascript" src="js/silohouse.js"></script>
 	</head>	
 	<body>
 		<div id="div3d">
@@ -32,36 +29,28 @@
 					<li class="li logo">
 						<div class="img"></div>
 					</li>
-					<li class="li" onclick="MenuItemClick(this,'fun')">
+					<li class="li" onclick="onClickMenuItem(this,'fun')">
 						<div class="img"></div>
 						<p class="label">功能</p>
 					</li>
-					<li class="li" onclick="MenuItemClick(this,'fps')">
+					<li class="li" onclick="onClickMenuItem(this,'fps')">
 						<div class="img"></div>
 						<p class="label">行走</p>
 					</li>
-					<li class="li">
+					<!-- <li class="li">
 						<div class="img"></div>
 						<p class="label">帮助(*)</p>
-					</li>
+					</li> -->
 				</ul>
 				<ul class="ul ul-bottom">    
 					<!-- 下邊 -->
-					<li class="li" onclick="MenuItemClick(this,'cam')">
+					<li class="li" onclick="onClickMenuItem(this,'cam')">
 						<div class="img img-2d"></div>
 						<p class="label">2D</p>
 					</li>
-					<li class="li" onclick="MenuItemClick(this,'rot')">
+					<li class="li" onclick="onClickMenuItem(this,'rot')">
 						<div class="img"></div>
 						<p class="label">旋转</p>
-					</li>
-					<li class="li" onclick="MenuItemClick(this,'reset')">
-						<div class="img"></div>
-						<p class="label">复位</p>
-					</li>
-					<li class="li">
-						<div class="img"></div>
-						<p class="label">返回(*)</p>
 					</li>
 				</ul>
 			</div>
